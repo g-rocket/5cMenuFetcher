@@ -8,22 +8,30 @@ public class Meal {
 	public final LocalTime startTime;
 	public final LocalTime endTime;
 	public final String name;
+	public final String description;
 	
 	public Meal(List<Station> stations, 
 			LocalTime startTime, LocalTime endTime,
-			String name) {
+			String name, String description) {
 		this.stations = Collections.unmodifiableList(stations);
 		this.startTime = startTime;
 		this.endTime = endTime;
 		this.name = name;
+		this.description = description;
 	}
 	
 	public String toString() {
 		StringBuilder sb = new StringBuilder(name.toString());
-		sb.append("\n");
-		sb.append(startTime);
-		sb.append(" - ");
-		sb.append(endTime);
+		if(!description.isEmpty()) {
+			sb.append(": \n");
+			sb.append(description);
+		}
+		if(startTime != null && endTime != null) {
+			sb.append("\n");
+			sb.append(startTime);
+			sb.append(" - ");
+			sb.append(endTime);
+		}
 		sb.append("\n================\n\n");
 		for(Station station: stations) {
 			sb.append(station);

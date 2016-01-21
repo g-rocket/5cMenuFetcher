@@ -62,7 +62,7 @@ public class BonAppetitMenuFetcher implements MenuFetcher {
 		return new Meal(stations,
 				LocalTime.parse(mealData.get("starttime").getAsString()),
 				LocalTime.parse(mealData.get("endtime").getAsString()),
-				mealData.get("label").getAsString());
+				mealData.get("label").getAsString(), "");
 	}
 
 	private Station createStation(JsonObject stationData, JsonObject itemsData) {
