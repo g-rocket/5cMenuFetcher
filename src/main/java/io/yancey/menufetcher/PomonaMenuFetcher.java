@@ -5,6 +5,7 @@ import java.net.*;
 import java.time.*;
 import java.time.temporal.*;
 import java.util.*;
+import java.util.regex.*;
 
 import org.jsoup.*;
 import org.jsoup.nodes.*;
@@ -98,12 +99,14 @@ public class PomonaMenuFetcher implements MenuFetcher {
 		throw new IllegalStateException("no cells feed found");
 	}
 	
-	private JsonObject getSpreadsheetData(JsonObject spreadsheetInfo) {
+	private JsonArray getSpreadsheetData(JsonObject spreadsheetInfo) {
 		String url = getSpreadsheetUrl(spreadsheetInfo);
 		try(Scanner sc = new Scanner(new URL(url).openStream(), "UTF-8")) {
 			sc.useDelimiter("\\A");
 			String spreadsheetString = sc.hasNext()? sc.next(): "";
-			return new JsonParser().parse(spreadsheetString).getAsJsonObject();
+			return new JsonParser().parse(spreadsheetString).getAsJsonObject()
+					.getAsJsonObject("feed")
+					.getAsJsonArray("entry");
 		} catch (MalformedURLException e) {
 			throw new RuntimeException(e);
 		} catch (IOException e) {
@@ -111,18 +114,54 @@ public class PomonaMenuFetcher implements MenuFetcher {
 		}
 	}
 	
-	private int getWidth(JsonObject spreadsheetInfo) {
-		return spreadsheetInfo.get("gs$colCount").getAsInt();
+	private int getCols(JsonObject spreadsheetInfo) {
+		return spreadsheetInfo.getAsJsonObject("gs$colCount")
+				.get("$t").getAsInt();
 	}
 	
-	private int getHeight(JsonObject spreadsheetInfo) {
-		return spreadsheetInfo.get("gs$rowCount").getAsInt();
+	private int getRows(JsonObject spreadsheetInfo) {
+		return spreadsheetInfo.getAsJsonObject("gs$rowCount")
+				.get("$t").getAsInt();
+	}
+	
+	private int getRow(String[] position) {
+		return Integer.parseInt(position[1]) - 1;
+	}
+	
+	private int getCol(String[] position) {
+		// convert AC type heading to number (29)
+		// val must be int[] so it can be modified in lambda
+		int[] val = {0};
+		position[0].codePoints().forEachOrdered(c -> {
+			val[0] *= 26;
+			val[0] += Character.getNumericValue(c) - 9;
+		});
+		return val[0] - 1;
+	}
+	
+	private static final Pattern positionRegex = Pattern.compile("^([A-Z]+)([1-9][0-9]*)$");
+	private String[] getPosition(JsonObject cellData) {
+		String position = cellData.getAsJsonObject("title")
+				.get("$t").getAsString();
+		Matcher m = positionRegex.matcher(position);
+		if(!m.find()) {
+			throw new IllegalArgumentException("cell title doesn't match expected format");
+		}
+		return new String[]{m.group(1), m.group(2)};
+	}
+	
+	private String getContents(JsonObject cellData) {
+		return cellData.getAsJsonObject("content")
+				.get("$t").getAsString();
 	}
 	
 	private String[][] getSpreadsheet(JsonObject spreadsheetInfo) {
-		JsonObject spreadsheetData = getSpreadsheetData(spreadsheetInfo);
-		String[][] spreadsheet = new String[getWidth(spreadsheetInfo)][getHeight(spreadsheetInfo)];
-		//TODO: populate spreadsheet
+		JsonArray spreadsheetData = getSpreadsheetData(spreadsheetInfo);
+		String[][] spreadsheet = new String[getRows(spreadsheetInfo)][getCols(spreadsheetInfo)];
+		for(JsonElement cellData: spreadsheetData) {
+			String[] position = getPosition(cellData.getAsJsonObject());
+			spreadsheet[getRow(position)][getCol(position)] = getContents(cellData.getAsJsonObject());
+		}
 		return spreadsheet;
 	}
 	
