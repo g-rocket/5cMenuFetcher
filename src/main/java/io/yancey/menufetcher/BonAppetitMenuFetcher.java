@@ -38,12 +38,16 @@ public class BonAppetitMenuFetcher implements MenuFetcher {
 	@Override
 	public List<Meal> getMeals(LocalDate day) {
 		JsonObject menuData = getMenuJson(day).getAsJsonObject();
-		JsonArray mealsData = menuData
+		JsonArray mealsDataParts = menuData
 				.getAsJsonArray("days")
 				.get(0).getAsJsonObject()
 				.getAsJsonObject("cafes")
 				.getAsJsonObject(Integer.toString(cafeId))
-				.getAsJsonArray("dayparts")
+				.getAsJsonArray("dayparts");
+		if(mealsDataParts.size() == 0) {
+			return Collections.emptyList();
+		}
+		JsonArray mealsData = mealsDataParts
 				.get(0).getAsJsonArray();
 		JsonObject itemsData = menuData
 				.getAsJsonObject("items");
@@ -79,7 +83,7 @@ public class BonAppetitMenuFetcher implements MenuFetcher {
 	}
 
 	public static void main(String[] args) {
-		System.out.println(new BonAppetitMenuFetcher(COLLINS_ID).getMeals(java.time.LocalDate.of(2016, 01, 21)));
+		System.out.println(new BonAppetitMenuFetcher(COLLINS_ID).getMeals(java.time.LocalDate.of(2016, 01, 01)));
 	}
 
 }

@@ -186,7 +186,7 @@ public class PomonaMenuFetcher implements MenuFetcher {
 		JsonObject spreadsheetInfo = getSpreadsheetInfo(day, menuSpreadsheetInfo);
 		if(spreadsheetInfo == null) {
 			// couldn't find any info for requested day
-			return null;
+			return Collections.emptyList();
 		}
 		String[][] spreadsheet = getSpreadsheet(spreadsheetInfo);
 		String menuType = getMenuType(menuSpreadsheetInfo);

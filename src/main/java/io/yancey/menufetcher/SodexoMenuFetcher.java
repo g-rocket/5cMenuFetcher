@@ -8,6 +8,6 @@ public abstract class SodexoMenuFetcher implements MenuFetcher {
 	
 	@Override
 	public List<Meal> getMeals(LocalDate day) {
-		return null;
+		return Collections.emptyList();
 	}
 }
