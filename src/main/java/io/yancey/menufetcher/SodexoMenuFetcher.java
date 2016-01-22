@@ -35,10 +35,6 @@ public class SodexoMenuFetcher implements MenuFetcher {
 	private String getMenuUrl(LocalDate day) {
 		Document portal;
 		try {
-			String portalUrl = getPortalUrl();
-			try(InputStream portalStream = new URL(portalUrl).openStream()) {
-				portal = Jsoup.parse(portalStream, "ISO-8859-1", portalUrl);
-			}
 			portal = Jsoup.connect(getPortalUrl()).get();
 		} catch (IOException e) {
 			throw new RuntimeException(e);
@@ -79,8 +75,8 @@ public class SodexoMenuFetcher implements MenuFetcher {
 			return Collections.emptyList();
 		}
 		Document menuPage;
-		try {
-			menuPage = Jsoup.connect(menuUrl).get();
+		try(InputStream portalStream = new URL(menuUrl).openStream()) {
+			menuPage = Jsoup.parse(portalStream, "Windows-1252", menuUrl);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
