@@ -5,8 +5,10 @@ import java.net.*;
 import java.time.*;
 import java.time.format.*;
 import java.util.*;
+import java.util.stream.*;
 
 import com.google.gson.*;
+import com.google.gson.internal.*;
 
 public class BonAppetitMenuFetcher implements MenuFetcher {
 	private final int cafeId;
@@ -78,12 +80,21 @@ public class BonAppetitMenuFetcher implements MenuFetcher {
 	}
 
 	private MenuItem createMenuItem(JsonObject itemData) {
+		Set<String> tags;
+		if(itemData.get("cor_icon").isJsonObject()) {
+			JsonObject tagArray = itemData.getAsJsonObject("cor_icon");
+			tags = tagArray.entrySet().parallelStream()
+					.map((e) -> e.getValue().getAsString())
+					.collect(Collectors.toSet());
+		} else {
+			tags = Collections.emptySet();
+		}
 		return new MenuItem(itemData.get("label").getAsString(),
-				itemData.get("description").getAsString());
+				itemData.get("description").getAsString(), tags);
 	}
 
 	public static void main(String[] args) {
-		System.out.println(new BonAppetitMenuFetcher(COLLINS_ID).getMeals(java.time.LocalDate.of(2016, 01, 01)));
+		System.out.println(new BonAppetitMenuFetcher(COLLINS_ID).getMeals(java.time.LocalDate.of(2016, 01, 21)));
 	}
 
 }

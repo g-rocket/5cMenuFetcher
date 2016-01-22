@@ -1,12 +1,16 @@
 package io.yancey.menufetcher;
 
+import java.util.*;
+
 public class MenuItem {
 	public final String name;
 	public final String description;
+	public final Set<String> tags;
 	
-	public MenuItem(String name, String description) {
+	public MenuItem(String name, String description, Set<String> tags) {
 		this.name = name;
 		this.description = description;
+		this.tags = Collections.unmodifiableSet(tags);
 	}
 	
 	public String toString() {
@@ -19,11 +23,12 @@ public class MenuItem {
 	
 	public boolean equals(Object o) {
 		return o instanceof MenuItem &&
-				((MenuItem)o).name.equals(name) &&
-				((MenuItem)o).description.equals(description);
+				name.equals(((MenuItem)o).name) &&
+				description.equals(((MenuItem)o).description) &&
+				tags.equals(((MenuItem)o).tags);
 	}
 	
 	public int hashCode() {
-		return name.hashCode() ^ description.hashCode();
+		return name.hashCode() ^ description.hashCode() ^ tags.hashCode();
 	}
 }

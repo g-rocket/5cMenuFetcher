@@ -244,7 +244,7 @@ public class PomonaMenuFetcher implements MenuFetcher {
 	private Station frankFraryCreateStation(String[][] spreadsheet, int row, int column) {
 		return new Station(spreadsheet[row][1], 
 				Arrays.stream(spreadsheet[row][column].split(","))
-				.map(itemName -> new MenuItem(itemName.trim(), ""))
+				.map(itemName -> new MenuItem(itemName.trim(), "", Collections.emptySet()))
 				.collect(Collectors.toList()));
 	}
 
@@ -278,7 +278,7 @@ public class PomonaMenuFetcher implements MenuFetcher {
 	private Station oldenborgCreateStation(String[][] spreadsheet, int row, int column) {
 		return new Station(spreadsheet[row][0], 
 				Arrays.stream(spreadsheet[row][column].split(","))
-				.map(itemName -> new MenuItem(itemName.trim(), ""))
+				.map(itemName -> new MenuItem(itemName.trim(), "", Collections.emptySet()))
 				.collect(Collectors.toList()));
 	}
 
