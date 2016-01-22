@@ -6,14 +6,15 @@ import java.util.*;
 public interface MenuFetcher {
 	public List<Meal> getMeals(LocalDate day);
 	
-	public static List<MenuFetcher> getAllMenuFetchers() {
-		return Arrays.asList(
-				new PomonaMenuFetcher(PomonaMenuFetcher.FRANK_NAME),
-				new PomonaMenuFetcher(PomonaMenuFetcher.FRARY_NAME),
-				new PomonaMenuFetcher(PomonaMenuFetcher.OLDENBORG_NAME),
-				new BonAppetitMenuFetcher(BonAppetitMenuFetcher.COLLINS_ID),
-				new BonAppetitMenuFetcher(BonAppetitMenuFetcher.PITZER_ID),
-				new SodexoMenuFetcher(SodexoMenuFetcher.HOCH_SITENAME),
-				new SodexoMenuFetcher(SodexoMenuFetcher.SCRIPPS_SITENAME));
+	public static Map<String,MenuFetcher> getAllMenuFetchers() {
+		Map<String, MenuFetcher> menuFetchers = new LinkedHashMap<>();
+		menuFetchers.put("The Hoch", new SodexoMenuFetcher(SodexoMenuFetcher.HOCH_SITENAME));
+		menuFetchers.put("Pitzer",   new BonAppetitMenuFetcher(BonAppetitMenuFetcher.PITZER_ID));
+		menuFetchers.put("Frank",    new PomonaMenuFetcher(PomonaMenuFetcher.FRANK_NAME));
+		menuFetchers.put("Frary",    new PomonaMenuFetcher(PomonaMenuFetcher.FRARY_NAME));
+		menuFetchers.put("Oldenborg",new PomonaMenuFetcher(PomonaMenuFetcher.OLDENBORG_NAME));
+		menuFetchers.put("Scripps",  new SodexoMenuFetcher(SodexoMenuFetcher.SCRIPPS_SITENAME));
+		menuFetchers.put("Collins",  new BonAppetitMenuFetcher(BonAppetitMenuFetcher.COLLINS_ID));
+		return Collections.unmodifiableMap(menuFetchers);
 	}
 }
