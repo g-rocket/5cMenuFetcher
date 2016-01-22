@@ -92,6 +92,7 @@ public class SodexoMenuFetcher implements MenuFetcher {
 	
 	private Meal createMeal(Elements mealItems) {
 		String name = mealItems.remove(0).getElementsByClass("mealname").first().ownText();
+		name = name.substring(0, 1) + name.substring(1).toLowerCase();
 		List<Station> stations = new ArrayList<>();
 		ListIterator<Element> mealItemIter = mealItems.listIterator();
 		while(mealItemIter.hasNext()) {
@@ -132,6 +133,6 @@ public class SodexoMenuFetcher implements MenuFetcher {
 	}
 
 	public static void main(String[] args) {
-		System.out.println(new SodexoMenuFetcher(HOCH_SITENAME).getMeals(LocalDate.of(2016, 01, 22)));
+		System.out.println(new SodexoMenuFetcher(SCRIPPS_SITENAME).getMeals(LocalDate.of(2016, 01, 23)));
 	}
 }

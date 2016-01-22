@@ -31,14 +31,8 @@ public class PomonaMenuFetcher implements MenuFetcher {
 		return urlPrefix + name;
 	}
 	
-	private Element getMenuSpreadsheetInfo() {
-		Document doc;
-		try {
-			doc = Jsoup.connect(getMenuUrl()).get();
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-		return doc.getElementById("menu-from-google");
+	private Element getMenuSpreadsheetInfo(Document menuInfoPage) {
+		return menuInfoPage.getElementById("menu-from-google");
 	}
 	
 	private String getDocumentId(Element menuSpreadsheetInfo) {
@@ -179,27 +173,79 @@ public class PomonaMenuFetcher implements MenuFetcher {
 		}
 		return spreadsheet;
 	}
+
+	private static final Pattern dayRangeRegex = Pattern.compile(
+			"(Mon|Tues|Wednes|Thurs|Fri|Satur|Sun)day(?:-(Mon|Tues|Wednes|Thurs|Fri|Satur|Sun)day)?");
+	private static final Pattern mealTimePattern = Pattern.compile(
+			"([A-Z][a-z]*(?: [A-Z][a-z]*)*): ?" +
+			"([1-9][0-9]?):([0-9][0-9]) (a|p)\\.m\\. - " +
+			"([1-9][0-9]?):([0-9][0-9]) (a|p)\\.m\\.");
+	private Map<String, LocalTimeRange> getDiningHours(Document menuInfoPage, DayOfWeek dayOfWeek) {
+		Element hoursElement = menuInfoPage.getElementsByClass("dining-hours-top").first();
+		for(Element column: hoursElement.children()) {
+			if(!column.className().startsWith("dining-days-col-")) continue;
+			String dayRangeString = column.getElementsByClass("dining-days").first().ownText();
+			Matcher dayRangeMatcher = dayRangeRegex.matcher(dayRangeString);
+			if(!dayRangeMatcher.find()) {
+				System.err.println("Invalid day range: "+dayRangeString);
+				continue;
+			}
+			DayOfWeek startDay = DayOfWeek.valueOf((dayRangeMatcher.group(1)+"day").toUpperCase());
+			DayOfWeek endDay;
+			if(dayRangeMatcher.group(2) != null) {
+				endDay = DayOfWeek.valueOf((dayRangeMatcher.group(2)+"day").toUpperCase());
+			} else {
+				endDay = startDay;
+			}
+			if(dayOfWeek.compareTo(startDay) >= 0 && dayOfWeek.compareTo(endDay) <= 0) {
+				Element hoursForDay = column.getElementsByClass("dining-hours").first();
+				Map<String, LocalTimeRange> times = new HashMap<>();
+				for(Matcher m = mealTimePattern.matcher(hoursForDay.text()); m.find();) {
+					String name = m.group(1);
+					LocalTime startTime = LocalTime.of(
+							Integer.parseInt(m.group(2))%12 + (m.group(4).equals("p")? 12: 0),
+							Integer.parseInt(m.group(3)));
+					LocalTime endTime = LocalTime.of(
+							Integer.parseInt(m.group(5))%12 + (m.group(7).equals("p")? 12: 0),
+							Integer.parseInt(m.group(6)));
+					times.put(name, new LocalTimeRange(startTime, endTime));
+				}
+				return times;
+			}
+		}
+		System.out.println(hoursElement);
+		throw new IllegalArgumentException("The hours for the specified day could not be found");
+	}
 	
 	@Override
 	public List<Meal> getMeals(LocalDate day) {
-		Element menuSpreadsheetInfo = getMenuSpreadsheetInfo();
+		Document menuInfoPage;
+		try {
+			menuInfoPage = Jsoup.connect(getMenuUrl()).get();
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+		Element menuSpreadsheetInfo = getMenuSpreadsheetInfo(menuInfoPage);
 		JsonObject spreadsheetInfo = getSpreadsheetInfo(day, menuSpreadsheetInfo);
 		if(spreadsheetInfo == null) {
 			// couldn't find any info for requested day
 			return Collections.emptyList();
 		}
 		String[][] spreadsheet = getSpreadsheet(spreadsheetInfo);
+		
+		Map<String, LocalTimeRange> hoursTable = getDiningHours(menuInfoPage, day.getDayOfWeek());
+		
 		String menuType = getMenuType(menuSpreadsheetInfo);
 		if(menuType.equals("frankFrary")) {
-			return frankFraryParseMeals(spreadsheet, day.getDayOfWeek());
+			return frankFraryParseMeals(spreadsheet, hoursTable, day.getDayOfWeek());
 		} else if(menuType.equals("oldenborg")) {
-			return oldenborgParseMeals(spreadsheet, day.getDayOfWeek());
+			return oldenborgParseMeals(spreadsheet, hoursTable, day.getDayOfWeek());
 		} else {
 			throw new IllegalStateException("menu returned invalid type: " + menuType);
 		}
 	}
 
-	private List<Meal> frankFraryParseMeals(String[][] spreadsheet, DayOfWeek dayOfWeek) {
+	private List<Meal> frankFraryParseMeals(String[][] spreadsheet, Map<String, LocalTimeRange> hoursTable, DayOfWeek dayOfWeek) {
 		String dayName = dayOfWeek.getDisplayName(TextStyle.FULL_STANDALONE, Locale.ROOT);
 		int startRow = -1;
 		for(int row = 0; row < spreadsheet.length; row++) {
@@ -214,7 +260,7 @@ public class PomonaMenuFetcher implements MenuFetcher {
 		List<Meal> meals = new ArrayList<>(3);
 		for(int column = 2; column < spreadsheet[startRow].length; column++) {
 			if(frankFraryMealExists(spreadsheet, startRow, column)) {
-				meals.add(frankFraryCreateMeal(spreadsheet, startRow, column));
+				meals.add(frankFraryCreateMeal(spreadsheet, startRow, column, hoursTable));
 			}
 		}
 		return meals;
@@ -229,8 +275,9 @@ public class PomonaMenuFetcher implements MenuFetcher {
 		return false;
 	}
 	
-	private Meal frankFraryCreateMeal(String[][] spreadsheet, int startRow, int column) {
-		String name = spreadsheet[startRow][column];
+	private Meal frankFraryCreateMeal(String[][] spreadsheet, int startRow, int column, Map<String, LocalTimeRange> hoursTable) {
+		String name = spreadsheet[startRow][column].trim();
+		LocalTimeRange hours = hoursTable.get(name);
 		String description = spreadsheet[startRow + 1][column];
 		List<Station> stations = new ArrayList<>();
 		for(int station = 0; !spreadsheet[startRow + station + 2][1].isEmpty(); station++) {
@@ -238,7 +285,7 @@ public class PomonaMenuFetcher implements MenuFetcher {
 				stations.add(frankFraryCreateStation(spreadsheet, startRow + station + 2, column));
 			}
 		}
-		return new Meal(stations, null, null, name, description);
+		return new Meal(stations, hours.startTime, hours.endTime, name, description);
 	}
 
 	private Station frankFraryCreateStation(String[][] spreadsheet, int row, int column) {
@@ -248,9 +295,9 @@ public class PomonaMenuFetcher implements MenuFetcher {
 				.collect(Collectors.toList()));
 	}
 
-	private List<Meal> oldenborgParseMeals(String[][] spreadsheet, DayOfWeek dayOfWeek) {
-		if(!oldenborgMealExists(spreadsheet, dayOfWeek)) return Collections.EMPTY_LIST;
-		return Collections.singletonList(oldenborgCreateMeal(spreadsheet, dayOfWeek.getValue()));
+	private List<Meal> oldenborgParseMeals(String[][] spreadsheet, Map<String, LocalTimeRange> hoursTable, DayOfWeek dayOfWeek) {
+		if(!oldenborgMealExists(spreadsheet, dayOfWeek)) return Collections.emptyList();
+		return Collections.singletonList(oldenborgCreateMeal(spreadsheet, hoursTable, dayOfWeek.getValue()));
 	}
 
 	private boolean oldenborgMealExists(String[][] spreadsheet, DayOfWeek dayOfWeek) {
@@ -263,8 +310,9 @@ public class PomonaMenuFetcher implements MenuFetcher {
 		return false;
 	}
 
-	private Meal oldenborgCreateMeal(String[][] spreadsheet, int column) {
-		String name = "Lunch";
+	private Meal oldenborgCreateMeal(String[][] spreadsheet, Map<String, LocalTimeRange> hoursTable, int column) {
+		String name = hoursTable.keySet().iterator().next();
+		LocalTimeRange hours = hoursTable.get(name);
 		String description = spreadsheet[2][column];
 		List<Station> stations = new ArrayList<>();
 		for(int station = 0; !spreadsheet[station + 3][column].isEmpty(); station++) {
@@ -272,7 +320,7 @@ public class PomonaMenuFetcher implements MenuFetcher {
 				stations.add(oldenborgCreateStation(spreadsheet, station + 3, column));
 			}
 		}
-		return new Meal(stations, null, null, name, description);
+		return new Meal(stations, hours.startTime, hours.endTime, name, description);
 	}
 
 	private Station oldenborgCreateStation(String[][] spreadsheet, int row, int column) {
@@ -283,7 +331,7 @@ public class PomonaMenuFetcher implements MenuFetcher {
 	}
 
 	public static void main(String[] args) {
-		//System.out.println(new PomonaMenuFetcher(FRARY_NAME).getMeals(LocalDate.of(2016,1,23)));
-		System.out.println(new PomonaMenuFetcher(OLDENBORG_NAME).getMeals(LocalDate.of(2016,1,20)));
+		System.out.println(new PomonaMenuFetcher(FRARY_NAME).getMeals(LocalDate.of(2016,1,24)));
+		//System.out.println(new PomonaMenuFetcher(OLDENBORG_NAME).getMeals(LocalDate.of(2016,1,20)));
 	}
 }
