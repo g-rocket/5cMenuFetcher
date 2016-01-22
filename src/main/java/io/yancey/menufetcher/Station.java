@@ -1,6 +1,9 @@
 package io.yancey.menufetcher;
 
+import java.io.*;
 import java.util.*;
+
+import com.google.gson.stream.*;
 
 public class Station {
 	public final String name;
@@ -29,5 +32,14 @@ public class Station {
 	
 	public int hashCode() {
 		return name.hashCode() ^ menu.hashCode();
+	}
+	
+	public void toJson(JsonWriter writer) throws IOException {
+		writer.beginObject();
+		writer.name("name").value(name);
+		writer.name("dishes").beginArray();
+		for(MenuItem dish: menu) dish.toJson(writer);
+		writer.endArray();
+		writer.endObject();
 	}
 }

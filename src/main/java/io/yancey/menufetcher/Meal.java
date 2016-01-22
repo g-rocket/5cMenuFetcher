@@ -2,6 +2,8 @@ package io.yancey.menufetcher;
 
 import java.time.*;
 import java.util.*;
+import java.io.*;
+import com.google.gson.stream.*;
 
 public class Meal {
 	public final List<Station> stations;
@@ -49,5 +51,17 @@ public class Meal {
 	public int hashCode() {
 		return name.hashCode() ^ stations.hashCode() ^
 				startTime.hashCode() ^ endTime.hashCode();
+	}
+	
+	public void toJson(JsonWriter writer) throws IOException {
+		writer.beginObject();
+		writer.name("name").value(name);
+		writer.name("description").value(description);
+		if(startTime != null) writer.name("startTime").value(startTime.toString());
+		if(endTime != null) writer.name("endTime").value(endTime.toString());
+		writer.name("stations").beginArray();
+		for(Station station: stations) station.toJson(writer);
+		writer.endArray();
+		writer.endObject();
 	}
 }

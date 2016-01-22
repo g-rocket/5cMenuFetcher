@@ -1,6 +1,9 @@
 package io.yancey.menufetcher;
 
+import java.io.*;
 import java.util.*;
+
+import com.google.gson.stream.*;
 
 public class MenuItem {
 	public final String name;
@@ -30,5 +33,15 @@ public class MenuItem {
 	
 	public int hashCode() {
 		return name.hashCode() ^ description.hashCode() ^ tags.hashCode();
+	}
+	
+	public void toJson(JsonWriter writer) throws IOException {
+		writer.beginObject();
+		writer.name("name").value(name);
+		writer.name("description").value(description);
+		writer.name("tags").beginArray();
+		for(String tag: tags) writer.value(tag);
+		writer.endArray();
+		writer.endObject();
 	}
 }
