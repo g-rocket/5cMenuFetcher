@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>5c Menu 2.0</title>
+    <style>
+      a {
+        text-decoration: none;
+      }
+      .day-list {
+        border-collapse: collapse;
+      }
+      .day-list-item {
+        text-align: center;
+        border: 1px solid black;
+      }
+      .day-list-item-selected {
+        background-color: #dddddd;
+      }
+      .menu {
+        border-collapse: collapse;
+      }
+      .menu-cell {
+        text-align:center;
+        border: 1px solid black;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="header" class="header">
+      <h1>5c Menu 2.0</h1>
+      <table id="day-list" class="day-list">
+        <tbody>
+          <tr>
+            <td class="day-list-item day-list-item-arrow" id="day-list-back"><a id="day-list-back-link">&lt;&lt;</a></td>
+            <td class="day-list-item" id="day-list-day-1"></td>
+            <td class="day-list-item" id="day-list-day-2"></td>
+            <td class="day-list-item" id="day-list-day-3"></td>
+            <td class="day-list-item" id="day-list-day-4"></td>
+            <td class="day-list-item" id="day-list-day-5"></td>
+            <td class="day-list-item" id="day-list-day-6"></td>
+            <td class="day-list-item" id="day-list-day-7"></td>
+            <td class="day-list-item day-list-item-arrow" id="day-list-fwd"><a id="day-list-fwd-link">&gt;&gt;</a></td>
+          </tr>
+        </tbody>
+      </table>
+      <br />
+      <table id="menu-summary" class="menu">
+        <tbody>
+          <tr>
+            <th colspan="8" class="menu-title menu-cell">Summary</th>
+          </tr>
+        </tbody>
+      </table>
+      <br />
+      <table id="menu" class="menu">
+        
+      </table>
+    </div>
+  </body>
+</html>

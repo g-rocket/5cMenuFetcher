@@ -8,14 +8,14 @@ import java.util.*;
 import java.util.stream.*;
 
 import com.google.gson.*;
-import com.google.gson.internal.*;
 
-public class BonAppetitMenuFetcher implements MenuFetcher {
+public class BonAppetitMenuFetcher extends AbstractMenuFetcher {
 	private final int cafeId;
 	public static final int PITZER_ID = 219;
 	public static final int COLLINS_ID = 50;
 	
-	public BonAppetitMenuFetcher(int cafeId) {
+	public BonAppetitMenuFetcher(String name, String id, int cafeId) {
+		super(name, id);
 		this.cafeId = cafeId;
 	}
 	
@@ -38,7 +38,7 @@ public class BonAppetitMenuFetcher implements MenuFetcher {
 	}
 
 	@Override
-	public List<Meal> getMeals(LocalDate day) {
+	public Menu getMeals(LocalDate day) {
 		JsonObject menuData = getMenuJson(day).getAsJsonObject();
 		JsonArray mealsDataParts = menuData
 				.getAsJsonArray("days")
@@ -47,7 +47,7 @@ public class BonAppetitMenuFetcher implements MenuFetcher {
 				.getAsJsonObject(Integer.toString(cafeId))
 				.getAsJsonArray("dayparts");
 		if(mealsDataParts.size() == 0) {
-			return Collections.emptyList();
+			return new Menu(name, id, Collections.emptyList());
 		}
 		JsonArray mealsData = mealsDataParts
 				.get(0).getAsJsonArray();
@@ -57,7 +57,7 @@ public class BonAppetitMenuFetcher implements MenuFetcher {
 		for(JsonElement mealData: mealsData) {
 			meals.add(createMeal(mealData.getAsJsonObject(), itemsData));
 		}
-		return meals;
+		return new Menu(name, id, meals);
 	}
 	
 	private Meal createMeal(JsonObject mealData, JsonObject itemsData) {
@@ -94,7 +94,7 @@ public class BonAppetitMenuFetcher implements MenuFetcher {
 	}
 
 	public static void main(String[] args) {
-		System.out.println(new BonAppetitMenuFetcher(COLLINS_ID).getMeals(java.time.LocalDate.of(2016, 01, 21)));
+		System.out.println(new BonAppetitMenuFetcher("Collins", "collins", COLLINS_ID).getMeals(java.time.LocalDate.of(2016, 01, 21)));
 	}
 
 }

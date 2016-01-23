@@ -4,31 +4,30 @@ import java.io.*;
 import java.net.*;
 import java.time.*;
 import java.time.format.*;
-import java.time.temporal.*;
 import java.util.*;
 import java.util.regex.*;
 import java.util.stream.*;
 
 import org.jsoup.*;
 import org.jsoup.nodes.*;
-import org.jsoup.select.*;
 
 import com.google.gson.*;
 
-public class PomonaMenuFetcher implements MenuFetcher {
-	private final String name;
+public class PomonaMenuFetcher extends AbstractMenuFetcher {
+	private final String sitename;
 	private static final String urlPrefix = "http://www.pomona.edu/administration/dining/menus/";
 	
 	public static final String FRANK_NAME = "frank";
 	public static final String FRARY_NAME = "frary";
 	public static final String OLDENBORG_NAME = "oldenborg";
 	
-	public PomonaMenuFetcher(String name) {
-		this.name = name;
+	public PomonaMenuFetcher(String name, String id, String sitename) {
+		super(name, id);
+		this.sitename = sitename;
 	}
 	
 	private String getMenuUrl() {
-		return urlPrefix + name;
+		return urlPrefix + sitename;
 	}
 	
 	private Element getMenuSpreadsheetInfo(Document menuInfoPage) {
@@ -218,7 +217,7 @@ public class PomonaMenuFetcher implements MenuFetcher {
 	}
 	
 	@Override
-	public List<Meal> getMeals(LocalDate day) {
+	public Menu getMeals(LocalDate day) {
 		Document menuInfoPage;
 		try {
 			menuInfoPage = Jsoup.connect(getMenuUrl()).get();
@@ -229,7 +228,7 @@ public class PomonaMenuFetcher implements MenuFetcher {
 		JsonObject spreadsheetInfo = getSpreadsheetInfo(day, menuSpreadsheetInfo);
 		if(spreadsheetInfo == null) {
 			// couldn't find any info for requested day
-			return Collections.emptyList();
+			return new Menu(name, id, Collections.emptyList());
 		}
 		String[][] spreadsheet = getSpreadsheet(spreadsheetInfo);
 		
@@ -237,9 +236,9 @@ public class PomonaMenuFetcher implements MenuFetcher {
 		
 		String menuType = getMenuType(menuSpreadsheetInfo);
 		if(menuType.equals("frankFrary")) {
-			return frankFraryParseMeals(spreadsheet, hoursTable, day.getDayOfWeek());
+			return new Menu(name, id, frankFraryParseMeals(spreadsheet, hoursTable, day.getDayOfWeek()));
 		} else if(menuType.equals("oldenborg")) {
-			return oldenborgParseMeals(spreadsheet, hoursTable, day.getDayOfWeek());
+			return new Menu(name, id, oldenborgParseMeals(spreadsheet, hoursTable, day.getDayOfWeek()));
 		} else {
 			throw new IllegalStateException("menu returned invalid type: " + menuType);
 		}
@@ -331,7 +330,7 @@ public class PomonaMenuFetcher implements MenuFetcher {
 	}
 
 	public static void main(String[] args) {
-		System.out.println(new PomonaMenuFetcher(FRARY_NAME).getMeals(LocalDate.of(2016,1,24)));
+		System.out.println(new PomonaMenuFetcher("Frary", "frary", FRARY_NAME).getMeals(LocalDate.of(2016,1,24)));
 		//System.out.println(new PomonaMenuFetcher(OLDENBORG_NAME).getMeals(LocalDate.of(2016,1,20)));
 	}
 }

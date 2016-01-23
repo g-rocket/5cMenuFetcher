@@ -2,20 +2,15 @@ package io.yancey.menufetcher;
 
 import java.io.*;
 import java.net.*;
-import java.nio.*;
-import java.nio.charset.*;
 import java.time.*;
 import java.util.*;
 import java.util.regex.*;
-import java.util.stream.*;
 
 import org.jsoup.*;
 import org.jsoup.nodes.*;
 import org.jsoup.select.*;
 
-import com.google.common.base.*;
-
-public class SodexoMenuFetcher implements MenuFetcher {
+public class SodexoMenuFetcher extends AbstractMenuFetcher {
 	private final String sitename;
 	
 	public static final String HOCH_SITENAME = "hmc";
@@ -23,7 +18,8 @@ public class SodexoMenuFetcher implements MenuFetcher {
 	
 	private static final List<String> mealNames = Arrays.asList("brk", "lun", "din");
 	
-	public SodexoMenuFetcher(String sitename) {
+	public SodexoMenuFetcher(String name, String id, String sitename) {
+		super(name, id);
 		this.sitename = sitename;
 	}
 	
@@ -68,11 +64,11 @@ public class SodexoMenuFetcher implements MenuFetcher {
 	}
 	
 	@Override
-	public List<Meal> getMeals(LocalDate day) {
+	public Menu getMeals(LocalDate day) {
 		String menuUrl = getMenuUrl(day);
 		if(menuUrl == null) {
 			// no menu available for requested day
-			return Collections.emptyList();
+			return new Menu(name, id, Collections.emptyList());
 		}
 		Document menuPage;
 		try(InputStream portalStream = new URL(menuUrl).openStream()) {
@@ -84,15 +80,19 @@ public class SodexoMenuFetcher implements MenuFetcher {
 		List<Meal> meals = new ArrayList<>(3);
 		for(String mealName: mealNames) {
 			if(!menu.getElementsByClass(mealName).isEmpty()) {
-				meals.add(createMeal(menu.getElementsByClass(mealName)));
+				meals.add(createMeal(menu.getElementsByClass(mealName),
+						day.getDayOfWeek().compareTo(DayOfWeek.FRIDAY) > 0));
 			}
 		}
-		return meals;
+		return new Menu(name, id, meals);
 	}
 	
-	private Meal createMeal(Elements mealItems) {
+	private Meal createMeal(Elements mealItems, boolean isWeekend) {
 		String name = mealItems.remove(0).getElementsByClass("mealname").first().ownText();
 		name = name.substring(0, 1) + name.substring(1).toLowerCase();
+		if(name.equals("Lunch") && isWeekend) {
+			name = "Brunch";
+		}
 		List<Station> stations = new ArrayList<>();
 		ListIterator<Element> mealItemIter = mealItems.listIterator();
 		while(mealItemIter.hasNext()) {
@@ -133,6 +133,6 @@ public class SodexoMenuFetcher implements MenuFetcher {
 	}
 
 	public static void main(String[] args) {
-		System.out.println(new SodexoMenuFetcher(SCRIPPS_SITENAME).getMeals(LocalDate.of(2016, 01, 23)));
+		System.out.println(new SodexoMenuFetcher("Scripps", "scripps", SCRIPPS_SITENAME).getMeals(LocalDate.of(2016, 01, 23)));
 	}
 }
