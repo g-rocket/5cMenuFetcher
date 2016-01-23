@@ -1,0 +1,76 @@
+{
+	"hoch": {
+		"Lunch": {
+			"Oven": {
+				"include-if": {
+					"contains": "HMC CYO Pizza"
+				},
+				"number": 1
+			},
+			"Exhibition": 1,
+			"Creations": 1,
+			"Chef’s Corner": "all"
+		},
+		"Dinner": {
+			"Exhibition": 1,
+			"Creations": 1,
+			"Chef’s Corner": "all"
+		}
+	},
+	"pitzer": {
+		"Lunch": {
+			"Ovens": 1,
+			"Chef's Table": 1
+		},
+		"Dinner": {
+			"Options": 1,
+			"Chef's Table": 1,
+			"Ovens": {
+				"include if": {
+					"not-contains": "Pizza"
+				},
+				"number": 1
+			}
+		}
+	},
+	"frank": {
+		"Lunch": {
+			"Expo": "single",
+			"Mainline": "single"
+		},
+		"Dinner": {
+			"Expo": "single",
+			"Mainline": "single"
+		}
+	},
+	"frary": {
+		"Lunch": {
+			"Expo": "single"
+		}
+		"Dinner": {
+			"Expo": "single"
+		}
+	},
+	"oldenborg": {
+		"Lunch": {
+			"Entrée 1": 1,
+			"Specialties": 1
+		},
+		"Dinner": {}
+	},
+	"scripps": {
+		
+	},
+	"collins": {
+		"Lunch": {
+			"Expo": "all",
+			"Options": "all",
+			"Grill": -1
+		},
+		"Dinner": {
+			"Options": "all",
+			"Expo": "all",
+			"Grill": -1
+		}
+	}
+}
