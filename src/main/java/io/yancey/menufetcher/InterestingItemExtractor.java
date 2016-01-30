@@ -1,12 +1,16 @@
 package io.yancey.menufetcher;
 
 import java.io.*;
+import java.time.*;
 import java.util.*;
 
 import com.google.gson.*;
 
 public class InterestingItemExtractor {
+	public static InterestingItemExtractor instance = new InterestingItemExtractor();
+	
 	private final JsonObject ruleTable;
+	
 	public InterestingItemExtractor() {
 		ruleTable = new JsonParser().parse(new InputStreamReader(
 				getClass().getResourceAsStream("/interestingItems.json")))
@@ -26,8 +30,10 @@ public class InterestingItemExtractor {
 	private Meal getInterestingPartOfMeal(Meal baseMeal, JsonObject mealRules) {
 		List<Station> newStations = new ArrayList<>();
 		for(Map.Entry<String, JsonElement> stationRule: mealRules.entrySet()) {
+			Station baseStation = getStationByName(baseMeal.stations, stationRule.getKey());
+			if(baseStation == null) continue;
 			Station newStation = getInterestingPartOfStation(
-					getStationByName(baseMeal.stations, stationRule.getKey()),
+					baseStation,
 					stationRule.getValue());
 			if(newStation != null) newStations.add(newStation);
 		}
@@ -58,7 +64,9 @@ public class InterestingItemExtractor {
 					StringBuilder newName = new StringBuilder();
 					for(MenuItem item: baseStation.menu) {
 						newName.append(item.name);
+						newName.append(", ");
 					}
+					newName.delete(newName.length() - 2, newName.length());
 					return new Station(baseStation.name, Collections.singletonList(
 							new MenuItem(newName.toString(), "", Collections.emptySet())));
 				} else {
@@ -68,17 +76,37 @@ public class InterestingItemExtractor {
 				throw new IllegalStateException("Bad rule: "+rule);
 			}
 		} else {
-			//TODO: handle objects
+			JsonObject filter = rule.getAsJsonObject()
+					.getAsJsonObject("include-if");
+			if(shouldIncludeStation(baseStation, filter)) {
+				return getInterestingPartOfStation(baseStation,
+						rule.getAsJsonObject().get("number"));
+			}
 			return null;
 		}
 	}
 
+	private boolean shouldIncludeStation(Station baseStation, JsonObject filter) {
+		Map.Entry<String, JsonElement> rule = filter.entrySet().iterator().next();
+		switch(rule.getKey()) {
+			case "contains":
+				return baseStation.toString().contains(rule.getValue().getAsString());
+			case "not-contains":
+				return !baseStation.toString().contains(rule.getValue().getAsString());
+		}
+		return false;
+	}
+
 	private Station getStationByName(List<Station> stations, String stationName) {
 		for(Station station: stations) {
-			if(station.name.equals(stationName)) {
+			if(station.name.equalsIgnoreCase(stationName)) {
 				return station;
 			}
 		}
-		throw new IllegalArgumentException("Couldn't find "+stationName);
+		return null;
+	}
+	
+	public static void main(String[] args) {
+		System.out.println(new InterestingItemExtractor().getInterestingItems(MenuFetcher.getAllMenuFetchers().get(0).getMeals(LocalDate.of(2016,1,30))));
 	}
 }
