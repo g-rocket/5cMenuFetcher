@@ -3,18 +3,16 @@
 		"Lunch": {
 			"Oven": {
 				"include-if": {
-					"contains": "HMC CYO Pizza"
+					"contains": "HMC CYO"
 				},
 				"number": 1
 			},
 			"Exhibition": 1,
-			"Creations": 1,
-			"Chef’s Corner": "all"
+			"Creations": 1
 		},
 		"Dinner": {
 			"Exhibition": 1,
-			"Creations": 1,
-			"Chef’s Corner": "all"
+			"Creations": 1
 		}
 	},
 	"pitzer": {
@@ -26,7 +24,7 @@
 			"Options": 1,
 			"Chef's Table": 1,
 			"Ovens": {
-				"include if": {
+				"include-if": {
 					"not-contains": "Pizza"
 				},
 				"number": 1
@@ -46,7 +44,7 @@
 	"frary": {
 		"Lunch": {
 			"Expo": "single"
-		}
+		},
 		"Dinner": {
 			"Expo": "single"
 		}
@@ -59,18 +57,27 @@
 		"Dinner": {}
 	},
 	"scripps": {
-		
+		"Lunch": {
+			"Exhibition": "single",
+			"Grill": 1,
+			"Specials": 1
+		},
+		"Dinner": {
+			"Exhibition": "single",
+			"Grill": "all",
+			"Specials": 1
+		}
 	},
 	"collins": {
 		"Lunch": {
 			"Expo": "all",
 			"Options": "all",
-			"Grill": -1
+			"Collins Grill": -1
 		},
 		"Dinner": {
 			"Options": "all",
 			"Expo": "all",
-			"Grill": -1
+			"Collins Grill": -1
 		}
 	}
 }
