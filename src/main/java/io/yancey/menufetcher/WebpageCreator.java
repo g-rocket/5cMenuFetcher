@@ -9,6 +9,7 @@ import org.jsoup.*;
 import org.jsoup.nodes.*;
 
 public class WebpageCreator {
+	
 	public static Document createWebpage(LocalDate day) {
 		Document template;
 		try(InputStream templateFile = new Object().getClass().getResourceAsStream("/template.html")) {
@@ -25,28 +26,41 @@ public class WebpageCreator {
 		List<Menu> menus = new ArrayList<>();
 		for(MenuFetcher menuFetcher: MenuFetcher.getAllMenuFetchers()) {
 			menus.add(menuFetcher.getMeals(day));
+			System.out.print(".");
 		}
+		System.out.println();
 		System.out.println(menus);
 		addMenuSummary(template, menus);
 		addFullMenus(template, menus);
 	}
-	
-	//TODO: this belongs somewhere else, but I'm not sure where
-	private static List<MenuItem> getInterestingItems(Menu menu) {
-		List<MenuItem> interestingItems = new ArrayList<>();
-		
-		return interestingItems;
-	}
 
 	private static void addMenuSummary(Document template, List<Menu> menus) {
-		Element summary = template.getElementById("menu-summary").child(0);
-		Element nameRow = summary.appendElement("tr");
+		Element nameRow = template.getElementById("menu-summary-dining-halls");
 		nameRow.appendElement("td").addClass("menu-cell");
 		for(Menu menu: menus) {
 			Element name = nameRow.appendElement("td");
 			name.addClass("menu-cell");
 			name.text(menu.diningHallName);
 		}
+		boolean hasLunch = false;
+		for(Menu menu: menus) {
+			for(Meal meal: InterestingItemExtractor.instance.getInterestingItems(menu)) {
+				if(meal.name.equalsIgnoreCase("lunch")) {
+					hasLunch = true;
+				}
+				Element cell = template.getElementById("menu-summary-"+meal.name.toLowerCase()+"-"+menu.diningHallId);
+				if(!meal.description.isEmpty()) {
+					cell.appendText(meal.description);
+				}
+				Element list = cell.appendElement("ul").addClass("menu-item-list");
+				for(Station station: meal.stations) {
+					for(MenuItem item: station.menu) {
+						list.appendElement("li").appendText(item.toString());
+					}
+				}
+			}
+		}
+		if(!hasLunch) template.getElementById("menu-summary-lunch").remove();
 	}
 
 	private static void addFullMenus(Document template, List<Menu> menus) {

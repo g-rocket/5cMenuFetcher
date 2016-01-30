@@ -21,8 +21,15 @@
         border-collapse: collapse;
       }
       .menu-cell {
-        text-align:center;
+        text-align: center;
         border: 1px solid black;
+        vertical-align: top;
+      }
+      .menu-title {
+        vertical-align: middle;
+      }
+      .menu-item-list {
+        text-align: left;
       }
     </style>
   </head>
@@ -44,18 +51,39 @@
           </tr>
         </tbody>
       </table>
-      <br />
-      <table id="menu-summary" class="menu">
-        <tbody>
-          <tr>
-            <th colspan="8" class="menu-title menu-cell">Summary</th>
-          </tr>
-        </tbody>
-      </table>
-      <br />
-      <table id="menu" class="menu">
-        
-      </table>
     </div>
+    <br />
+    <table id="menu-summary" class="menu">
+      <tbody>
+        <tr>
+          <th colspan="8" class="menu-title menu-cell">Summary</th>
+        </tr>
+        <tr id="menu-summary-dining-halls"></tr>
+        <tr id="menu-summary-lunch">
+          <td id="menu-summary-lunch-label" class="menu-cell menu-title">Lunch</td>
+          <td id="menu-summary-lunch-hoch" class="menu-cell"></td>
+          <td id="menu-summary-lunch-pitzer" class="menu-cell"></td>
+          <td id="menu-summary-lunch-frank" class="menu-cell"></td>
+          <td id="menu-summary-lunch-frary" class="menu-cell"></td>
+          <td id="menu-summary-lunch-oldenborg" class="menu-cell"></td>
+          <td id="menu-summary-lunch-scripps" class="menu-cell"></td>
+          <td id="menu-summary-lunch-collins" class="menu-cell"></td>
+        </tr>
+        <tr id="menu-summary-dinner">
+          <td id="menu-summary-dinner-label" class="menu-cell menu-title">Dinner</td>
+          <td id="menu-summary-dinner-hoch" class="menu-cell"></td>
+          <td id="menu-summary-dinner-pitzer" class="menu-cell"></td>
+          <td id="menu-summary-dinner-frank" class="menu-cell"></td>
+          <td id="menu-summary-dinner-frary" class="menu-cell"></td>
+          <td id="menu-summary-dinner-oldenborg" class="menu-cell"></td>
+          <td id="menu-summary-dinner-scripps" class="menu-cell"></td>
+          <td id="menu-summary-dinner-collins" class="menu-cell"></td>
+        </tr>
+      </tbody>
+    </table>
+    <br />
+    <table id="menu" class="menu">
+      
+    </table>
   </body>
 </html>
