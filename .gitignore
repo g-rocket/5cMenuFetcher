@@ -1,0 +1,11 @@
+# ignore generated html files
+*.html
+
+# but not any source html file (like the template html)
+!/src/**/*.html
+
+# ignore target directory
+/target
+
+# random junk that tends to appear
+/dependency-reduced-pom.xml
