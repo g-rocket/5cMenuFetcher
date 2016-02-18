@@ -1,16 +1,16 @@
 {
 	"hoch": {
 		"Lunch": {
+			"Exhibition": 1,
+			"Creations": 1
+		},
+		"Dinner": {
 			"Oven": {
 				"include-if": {
 					"contains": "HMC CYO"
 				},
 				"number": 1
 			},
-			"Exhibition": 1,
-			"Creations": 1
-		},
-		"Dinner": {
 			"Exhibition": 1,
 			"Creations": 1
 		}
