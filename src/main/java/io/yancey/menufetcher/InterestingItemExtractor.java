@@ -106,7 +106,7 @@ public class InterestingItemExtractor {
 		return null;
 	}
 	
-	public static void main(String[] args) {
-		System.out.println(new InterestingItemExtractor().getInterestingItems(MenuFetcher.getAllMenuFetchers().get(0).getMeals(LocalDate.of(2016,1,30))));
+	public static void main(String[] args) throws IOException {
+		System.out.println(new InterestingItemExtractor().getInterestingItems(MenuFetcher.getAllMenuFetchers().get(0).getMeals(LocalDate.now())));
 	}
 }
