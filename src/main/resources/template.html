@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>5c Menu 2.0</title>
     <style>
-      a {
+      .day-list-item > a {
         text-decoration: none;
       }
       .day-list {
@@ -30,6 +30,17 @@
       }
       .menu-item-list {
         text-align: left;
+        margin: 0;
+        padding-left: 15px;
+        list-style: none;
+      }
+      .menu-item-list > li {
+        position: relative;
+      }
+      .menu-item-list > li:before {
+          content: '\2022';
+          position: absolute;
+          left: -.5em;
       }
     </style>
   </head>
