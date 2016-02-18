@@ -98,8 +98,8 @@ public class WebpageCreator {
 				((LocalDate)DayOfWeek.SUNDAY.adjustInto(day)).plusDays(1) + ".html");
 	}
 	
-	public static void createAndSaveWebpage(LocalDate day) {
-		try(FileWriter w = new FileWriter(day.toString() + ".html")) {
+	public static void createAndSaveWebpage(String folder, LocalDate day) {
+		try(FileWriter w = new FileWriter(new File(folder, day.toString() + ".html"))) {
 			w.write(WebpageCreator.createWebpage(day).toString());
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -110,6 +110,23 @@ public class WebpageCreator {
 		/*for(LocalDate day = LocalDate.of(2016, 01, 05); day.isBefore(LocalDate.of(2016, 02, 05)); day = day.plusDays(1)) {
 			createAndSaveWebpage(day);
 		}*/
-		createAndSaveWebpage(LocalDate.now());
+		if(args.length != 1) {
+			createAndSaveWebpage(".", LocalDate.now());
+			return;
+		}
+		//createAndSaveWebpage(LocalDate.now());
+		for(LocalDate day = LocalDate.now(); day.isBefore(LocalDate.now().plusDays(7)); day = day.plusDays(1)) {
+			try {
+				createAndSaveWebpage(args[0], day);
+			} catch(Exception e) {
+				System.err.println("Failed to create webpage for day "+day);
+				e.printStackTrace();
+			}
+		}
+		try(FileWriter index = new FileWriter(new File(args[0], "index.html"))) {
+			index.write("<html><head><meta http-equiv=\"refresh\" content=\"0; URL=" + LocalDate.now().toString() + ".html\"></head><body>Redirecting you to <a href=\"" + LocalDate.now().toString() + ".html\">the current menu</a></body></html>");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 }
