@@ -78,10 +78,16 @@ public class PomonaMenuFetcher extends AbstractMenuFetcher {
 				System.err.println("Invalid format for date string: " + spreadsheetDateString);
 				continue;
 			}
-			LocalDate spreadsheetDate = LocalDate.of(
-					2000 + Integer.parseInt(m.group(3)),
-					Integer.parseInt(m.group(1)),
-					Integer.parseInt(m.group(2)));
+			LocalDate spreadsheetDate;
+			try {
+				spreadsheetDate = LocalDate.of(
+						2000 + Integer.parseInt(m.group(3)),
+						Integer.parseInt(m.group(1)),
+						Integer.parseInt(m.group(2)));
+			} catch(DateTimeException e){
+				System.err.println("Invalid date string: " + spreadsheetDateString);
+				continue;
+			}
 			if(nearestMonday.equals(spreadsheetDate)) {
 				return spreadsheet.getAsJsonObject();
 			}
@@ -234,6 +240,11 @@ public class PomonaMenuFetcher extends AbstractMenuFetcher {
 		
 		Map<String, LocalTimeRange> hoursTable = getDiningHours(menuInfoPage, day.getDayOfWeek());
 		
+		if(hoursTable.isEmpty()) {
+			// closed for the day
+			return new Menu(name, id, Collections.emptyList());
+		}
+		
 		String menuType = getMenuType(menuSpreadsheetInfo);
 		if(menuType.equals("frankFrary")) {
 			return new Menu(name, id, frankFraryParseMeals(spreadsheet, hoursTable, day.getDayOfWeek()));
@@ -276,6 +287,7 @@ public class PomonaMenuFetcher extends AbstractMenuFetcher {
 	
 	private Meal frankFraryCreateMeal(String[][] spreadsheet, int startRow, int column, Map<String, LocalTimeRange> hoursTable) {
 		String name = spreadsheet[startRow][column].trim();
+		if(name.equals("Brakfast")) name = "Breakfast"; // fix someone else's typo
 		LocalTimeRange hours = hoursTable.get(name);
 		String description = spreadsheet[startRow + 1][column];
 		List<Station> stations = new ArrayList<>();
@@ -330,7 +342,8 @@ public class PomonaMenuFetcher extends AbstractMenuFetcher {
 	}
 
 	public static void main(String[] args) {
-		System.out.println(new PomonaMenuFetcher("Frary", "frary", FRARY_NAME).getMeals(LocalDate.of(2016,1,24)));
-		//System.out.println(new PomonaMenuFetcher(OLDENBORG_NAME).getMeals(LocalDate.of(2016,1,20)));
+		System.out.println(new PomonaMenuFetcher("Frank", "frank", FRANK_NAME).getMeals(LocalDate.of(2016,2,12)));
+		//System.out.println(new PomonaMenuFetcher("Frary", "frary", FRARY_NAME).getMeals(LocalDate.of(2016,2,15)));
+		//System.out.println(new PomonaMenuFetcher("Oldenborg", "oldenborg", OLDENBORG_NAME).getMeals(LocalDate.of(2016,2,22)));
 	}
 }
