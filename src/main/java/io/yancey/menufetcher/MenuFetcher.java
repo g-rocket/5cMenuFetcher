@@ -4,7 +4,8 @@ import java.time.*;
 import java.util.*;
 
 public interface MenuFetcher {
-	public Menu getMeals(LocalDate day);
+	public Menu getMeals(LocalDate day)
+			throws MenuNotAvailableException, MalformedMenuException;
 	
 	public String getName();
 	public String getId();

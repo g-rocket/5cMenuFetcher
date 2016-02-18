@@ -25,11 +25,21 @@ public class WebpageCreator {
 	private static void addMenus(Document template, LocalDate day) {
 		List<Menu> menus = new ArrayList<>();
 		for(MenuFetcher menuFetcher: MenuFetcher.getAllMenuFetchers()) {
-			menus.add(menuFetcher.getMeals(day));
-			System.out.print(".");
+			try {
+				menus.add(menuFetcher.getMeals(day));
+				System.out.print(".");
+			} catch(MenuNotAvailableException e) {
+				System.err.println("Error fetching "+menuFetcher.getId()+
+						" for "+day+": menu not found");
+				e.printStackTrace();
+			} catch(MalformedMenuException e) {
+				System.err.println("Error fetching "+menuFetcher.getId()+
+						" for "+day+": invalid data recieved");
+				e.printStackTrace();
+			}
 		}
 		System.out.println();
-		System.out.println(menus);
+		//System.out.println(menus);
 		addMenuSummary(template, menus);
 		addFullMenus(template, menus);
 	}
