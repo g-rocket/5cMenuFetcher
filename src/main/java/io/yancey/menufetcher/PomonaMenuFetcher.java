@@ -49,7 +49,8 @@ public class PomonaMenuFetcher extends AbstractMenuFetcher {
 				"/public/basic?alt=json";
 	}
 	
-	private JsonArray getSpreadsheets(Element menuSpreadsheetInfo) {
+	private JsonArray getSpreadsheets(Element menuSpreadsheetInfo)
+			throws MalformedMenuException, MenuNotAvailableException {
 		String url = getDocumentUrl(menuSpreadsheetInfo);
 		try(Scanner sc = new Scanner(new URL(url).openStream(), "UTF-8")) {
 			sc.useDelimiter("\\A");
@@ -58,15 +59,16 @@ public class PomonaMenuFetcher extends AbstractMenuFetcher {
 					.getAsJsonObject("feed")
 					.getAsJsonArray("entry");
 		} catch (MalformedURLException e) {
-			throw new RuntimeException(e);
+			throw new MalformedMenuException("Invalid spreadsheets url", e);
 		} catch (IOException e) {
-			throw new RuntimeException(e);
+			throw new MenuNotAvailableException("Error fetching spreadsheets",e);
 		}
 	}
 	
 	private static final Pattern spreadsheetDateStringRegex = 
 			Pattern.compile("([0-9][0-9]?)-([0-9][0-9]?)-([0-9][0-9])");
-	private JsonObject getSpreadsheetInfo(LocalDate day, Element menuSpreadsheetInfo) {
+	private JsonObject getSpreadsheetInfo(LocalDate day, Element menuSpreadsheetInfo)
+			throws MalformedMenuException, MenuNotAvailableException {
 		JsonArray spreadsheets = getSpreadsheets(menuSpreadsheetInfo);
 		LocalDate nearestMonday = (LocalDate)DayOfWeek.MONDAY.adjustInto(day);
 		for(JsonElement spreadsheet: spreadsheets) {
@@ -106,7 +108,8 @@ public class PomonaMenuFetcher extends AbstractMenuFetcher {
 		throw new IllegalArgumentException("no cells feed found");
 	}
 	
-	private JsonArray getSpreadsheetData(JsonObject spreadsheetInfo) {
+	private JsonArray getSpreadsheetData(JsonObject spreadsheetInfo)
+			throws MalformedMenuException, MenuNotAvailableException {
 		String url = getSpreadsheetUrl(spreadsheetInfo);
 		try(Scanner sc = new Scanner(new URL(url).openStream(), "UTF-8")) {
 			sc.useDelimiter("\\A");
@@ -115,9 +118,9 @@ public class PomonaMenuFetcher extends AbstractMenuFetcher {
 					.getAsJsonObject("feed")
 					.getAsJsonArray("entry");
 		} catch (MalformedURLException e) {
-			throw new RuntimeException(e);
+			throw new MalformedMenuException("Invalid spreadsheet url",e);
 		} catch (IOException e) {
-			throw new RuntimeException(e);
+			throw new MenuNotAvailableException("Error fetching spreadsheet data",e);
 		}
 	}
 	
@@ -162,7 +165,8 @@ public class PomonaMenuFetcher extends AbstractMenuFetcher {
 				.get("$t").getAsString();
 	}
 	
-	private String[][] getSpreadsheet(JsonObject spreadsheetInfo) {
+	private String[][] getSpreadsheet(JsonObject spreadsheetInfo)
+			throws MalformedMenuException, MenuNotAvailableException {
 		JsonArray spreadsheetData = getSpreadsheetData(spreadsheetInfo);
 		String[][] spreadsheet = new String[getRows(spreadsheetInfo)][getCols(spreadsheetInfo)];
 		for(JsonElement cellData: spreadsheetData) {
@@ -223,18 +227,18 @@ public class PomonaMenuFetcher extends AbstractMenuFetcher {
 	}
 	
 	@Override
-	public Menu getMeals(LocalDate day) {
+	public Menu getMeals(LocalDate day) throws MalformedMenuException, MenuNotAvailableException {
 		Document menuInfoPage;
 		try {
 			menuInfoPage = Jsoup.connect(getMenuUrl()).get();
 		} catch (IOException e) {
-			throw new RuntimeException(e);
+			throw new MenuNotAvailableException("Error fetching menu info",e);
 		}
 		Element menuSpreadsheetInfo = getMenuSpreadsheetInfo(menuInfoPage);
 		JsonObject spreadsheetInfo = getSpreadsheetInfo(day, menuSpreadsheetInfo);
 		if(spreadsheetInfo == null) {
 			// couldn't find any info for requested day
-			return new Menu(name, id, Collections.emptyList());
+			return new Menu(name, id, getMenuUrl(), Collections.emptyList());
 		}
 		String[][] spreadsheet = getSpreadsheet(spreadsheetInfo);
 		
@@ -242,14 +246,14 @@ public class PomonaMenuFetcher extends AbstractMenuFetcher {
 		
 		if(hoursTable.isEmpty()) {
 			// closed for the day
-			return new Menu(name, id, Collections.emptyList());
+			return new Menu(name, id, getMenuUrl(), Collections.emptyList());
 		}
 		
 		String menuType = getMenuType(menuSpreadsheetInfo);
 		if(menuType.equals("frankFrary")) {
-			return new Menu(name, id, frankFraryParseMeals(spreadsheet, hoursTable, day.getDayOfWeek()));
+			return new Menu(name, id, getMenuUrl(), frankFraryParseMeals(spreadsheet, hoursTable, day.getDayOfWeek()));
 		} else if(menuType.equals("oldenborg")) {
-			return new Menu(name, id, oldenborgParseMeals(spreadsheet, hoursTable, day.getDayOfWeek()));
+			return new Menu(name, id, getMenuUrl(), oldenborgParseMeals(spreadsheet, hoursTable, day.getDayOfWeek()));
 		} else {
 			throw new IllegalStateException("menu returned invalid type: " + menuType);
 		}
@@ -341,7 +345,7 @@ public class PomonaMenuFetcher extends AbstractMenuFetcher {
 				.collect(Collectors.toList()));
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws MalformedMenuException, MenuNotAvailableException {
 		System.out.println(new PomonaMenuFetcher("Frank", "frank", FRANK_NAME).getMeals(LocalDate.of(2016,2,12)));
 		//System.out.println(new PomonaMenuFetcher("Frary", "frary", FRARY_NAME).getMeals(LocalDate.of(2016,2,15)));
 		//System.out.println(new PomonaMenuFetcher("Oldenborg", "oldenborg", OLDENBORG_NAME).getMeals(LocalDate.of(2016,2,22)));

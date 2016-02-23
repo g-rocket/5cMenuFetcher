@@ -5,11 +5,13 @@ import java.util.*;
 public class Menu {
 	public final String diningHallName;
 	public final String diningHallId;
+	public final String publicUrl;
 	public final List<Meal> meals;
 	
-	public Menu(String diningHallName, String diningHallId, List<Meal> meals) {
+	public Menu(String diningHallName, String diningHallId, String publicUrl, List<Meal> meals) {
 		this.diningHallName = diningHallName;
 		this.diningHallId = diningHallId;
+		this.publicUrl = publicUrl;
 		this.meals = Collections.unmodifiableList(meals);
 	}
 	

@@ -11,12 +11,13 @@ import org.jsoup.nodes.*;
 import org.jsoup.select.*;
 
 public class SodexoMenuFetcher extends AbstractMenuFetcher {
-	private final String sitename;
-	
 	public static final String HOCH_SITENAME = "hmc";
 	public static final String SCRIPPS_SITENAME = "scrippsdining";
 	
 	private static final List<String> mealNames = Arrays.asList("brk", "lun", "din");
+	
+	private final String sitename;
+	protected Map<String, Document> pageCache = new HashMap<>();
 	
 	public SodexoMenuFetcher(String name, String id, String sitename) {
 		super(name, id);
@@ -27,20 +28,31 @@ public class SodexoMenuFetcher extends AbstractMenuFetcher {
 		return "https://" + sitename + ".sodexomyway.com/dining-choices/index.html?forcedesktop=true";
 	}
 	
-	private static final Pattern datesPattern = Pattern.compile("([0-9][0-9]?)/([0-9][0-9]?)/([0-9]+) - ([0-9][0-9]?)/([0-9][0-9]?)/([0-9]+)");
-	private String getMenuUrl(LocalDate day) {
-		Document portal;
-		try {
-			portal = Jsoup.connect(getPortalUrl()).get();
-		} catch (IOException e) {
-			throw new RuntimeException(e);
+	private static final Pattern datesPattern = Pattern.compile(
+			"([0-9][0-9]?)/([0-9][0-9]?)/([0-9]+) - ([0-9][0-9]?)/([0-9][0-9]?)/([0-9]+)");
+	public String getMenuUrl(LocalDate day)
+			throws MenuNotAvailableException, MalformedMenuException {
+		if(!pageCache.containsKey(getPortalUrl())) {
+			try {
+				pageCache.put(getPortalUrl(), Jsoup.connect(getPortalUrl()).get());
+			} catch (IOException e) {
+				throw new MenuNotAvailableException("Error fetching portal", e);
+			}
 		}
-		Elements menus = portal.getElementById("accordion_3543").getElementsByTag("ul").first().children();
+		Document portal = pageCache.get(getPortalUrl());
+		Elements menus;
+		try {
+			menus = portal.getElementById("accordion_3543").getElementsByTag("ul").first().children();
+		} catch(NullPointerException e) {
+			throw new MenuNotAvailableException("Portal doesn't have any menus", e);
+		}
 		for(Element menuListing: menus) {
 			String datesString = menuListing.child(0).ownText();
 			Matcher dates = datesPattern.matcher(datesString);
 			if(!dates.matches()) {
-				throw new IllegalStateException("Invalid date range string: " + datesString);
+				//throw new MalformedMenuException("Invalid date range string: " + datesString);
+				System.err.println("Invalid date string fetching "+id+": "+datesString);
+				continue;
 			}
 			LocalDate startDate = LocalDate.of(
 					Integer.parseInt(dates.group(3)),
@@ -63,18 +75,22 @@ public class SodexoMenuFetcher extends AbstractMenuFetcher {
 		return menus.get(day.getDayOfWeek().getValue() - 1).child(0);
 	}
 	
+	public String getPublicMenuUrl(String menuUrl, LocalDate day) {
+		return menuUrl + "#" + day.getDayOfWeek().toString().toLowerCase();
+	}
+	
 	@Override
-	public Menu getMeals(LocalDate day) {
+	public Menu getMeals(LocalDate day) throws MenuNotAvailableException, MalformedMenuException {
 		String menuUrl = getMenuUrl(day);
 		if(menuUrl == null) {
 			// no menu available for requested day
-			return new Menu(name, id, Collections.emptyList());
+			return new Menu(name, id, getPublicMenuUrl(menuUrl, day), Collections.emptyList());
 		}
 		Document menuPage;
 		try(InputStream portalStream = new URL(menuUrl).openStream()) {
 			menuPage = Jsoup.parse(portalStream, "Windows-1252", menuUrl);
 		} catch (IOException e) {
-			throw new RuntimeException(e);
+			throw new MenuNotAvailableException("Error fetching menu",e);
 		}
 		Element menu = getMenu(day, menuPage);
 		List<Meal> meals = new ArrayList<>(3);
@@ -84,7 +100,7 @@ public class SodexoMenuFetcher extends AbstractMenuFetcher {
 						day.getDayOfWeek().compareTo(DayOfWeek.FRIDAY) > 0));
 			}
 		}
-		return new Menu(name, id, meals);
+		return new Menu(name, id, getPublicMenuUrl(menuUrl, day), meals);
 	}
 	
 	private Meal createMeal(Elements mealItems, boolean isWeekend) {
@@ -132,7 +148,7 @@ public class SodexoMenuFetcher extends AbstractMenuFetcher {
 		return new MenuItem(name, "", tags);
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws MenuNotAvailableException, MalformedMenuException {
 		System.out.println(new SodexoMenuFetcher("Scripps", "scripps", SCRIPPS_SITENAME).getMeals(LocalDate.of(2016, 01, 23)));
 	}
 }

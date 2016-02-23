@@ -15,7 +15,7 @@ public class WebpageCreator {
 		try(InputStream templateFile = new Object().getClass().getResourceAsStream("/template.html")) {
 			template = Jsoup.parse(templateFile, "UTF-8", "");
 		} catch (IOException e) {
-			throw new RuntimeException(e);
+			throw new RuntimeException("Template not found",e);
 		}
 		setupDayList(template, day);
 		addMenus(template, day);
@@ -36,6 +36,10 @@ public class WebpageCreator {
 				System.err.println("Error fetching "+menuFetcher.getId()+
 						" for "+day+": invalid data recieved");
 				e.printStackTrace();
+			} catch(Throwable t) {
+				System.err.println("Invalid exception recieved fetching "+
+						menuFetcher.getId()+" for "+day+": "+t);
+				throw t;
 			}
 		}
 		System.out.println();
@@ -48,9 +52,11 @@ public class WebpageCreator {
 		Element nameRow = template.getElementById("menu-summary-dining-halls");
 		nameRow.appendElement("td").addClass("menu-cell");
 		for(Menu menu: menus) {
-			Element name = nameRow.appendElement("td");
-			name.addClass("menu-cell");
-			name.text(menu.diningHallName);
+			Element nameCell = nameRow.appendElement("td");
+			nameCell.addClass("menu-cell");
+			Element nameLink = nameCell.appendElement("a");
+			nameLink.attr("href", menu.publicUrl);
+			nameLink.text(menu.diningHallName);
 		}
 		boolean hasLunch = false;
 		for(Menu menu: menus) {
@@ -75,7 +81,7 @@ public class WebpageCreator {
 
 	private static void addFullMenus(Document template, List<Menu> menus) {
 		// TODO Auto-generated method stub
-		
+		System.err.println("addFullMenus not implemented yet");
 	}
 
 	private static void setupDayList(Document template, LocalDate day) {
@@ -102,7 +108,7 @@ public class WebpageCreator {
 		try(FileWriter w = new FileWriter(new File(folder, day.toString() + ".html"))) {
 			w.write(WebpageCreator.createWebpage(day).toString());
 		} catch (IOException e) {
-			e.printStackTrace();
+			throw new RuntimeException("Error saving webpage",e);
 		}
 	}
 	
@@ -118,9 +124,9 @@ public class WebpageCreator {
 		for(LocalDate day = LocalDate.now(); day.isBefore(LocalDate.now().plusDays(7)); day = day.plusDays(1)) {
 			try {
 				createAndSaveWebpage(args[0], day);
-			} catch(Exception e) {
+			} catch(Throwable t) {
 				System.err.println("Failed to create webpage for day "+day);
-				e.printStackTrace();
+				t.printStackTrace();
 			}
 		}
 		try(FileWriter index = new FileWriter(new File(args[0], "index.html"))) {
