@@ -49,11 +49,8 @@ public class WebpageCreator {
 	}
 
 	private static void addMenuSummary(Document template, List<Menu> menus) {
-		Element nameRow = template.getElementById("menu-summary-dining-halls");
-		nameRow.appendElement("td").addClass("menu-cell");
 		for(Menu menu: menus) {
-			Element nameCell = nameRow.appendElement("td");
-			nameCell.addClass("menu-cell");
+			Element nameCell = template.getElementById("menu-summary-title-" + menu.diningHallId);
 			Element nameLink = nameCell.appendElement("a");
 			nameLink.attr("href", menu.publicUrl);
 			nameLink.text(menu.diningHallName);
