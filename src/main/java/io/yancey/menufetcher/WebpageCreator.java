@@ -98,14 +98,7 @@ public class WebpageCreator {
 					thisMeal = meal;
 				}
 			}
-			if(thisMeal == null) {
-				Elements stations = menuTable.getElementsByClass("menu-row-"+menu.diningHallId);
-				if(stations.size() == 0) continue;
-				Element spacer = stations.first().appendElement("td");
-				spacer.attr("rowspan",Integer.toString(stations.size()));
-				spacer.addClass("menu-cell");
-				spacer.addClass("menu-spacer");
-			} else {
+			if(thisMeal != null) {
 				for(Station station: thisMeal.stations) {
 					String stationId = getStationIdFromName(station.name);
 					Element cell = menuTable.getElementById("menu-row-" + menu.diningHallId + "-" + stationId).appendElement("td");
@@ -117,13 +110,13 @@ public class WebpageCreator {
 						list.appendElement("li").appendText(item.toString());
 					}
 				}
-				for(Element stationElement: menuTable.getElementsByClass("menu-row-" + menu.diningHallId)) {
-					if(stationElement.getElementsByClass(mealTitle).size() == 0) {
-						Element spacer = stationElement.appendElement("td");
-						spacer.attr("id", stationElement.id() + "-" + mealTitle);
-						spacer.addClass("menu-cell");
-						spacer.addClass("menu-spacer");
-					}
+			}
+			for(Element stationElement: menuTable.getElementsByClass("menu-row-" + menu.diningHallId)) {
+				if(stationElement.getElementsByClass(mealTitle).size() == 0) {
+					Element spacer = stationElement.appendElement("td");
+					spacer.attr("id", stationElement.id() + "-" + mealTitle);
+					spacer.addClass("menu-cell");
+					spacer.addClass("menu-spacer");
 				}
 			}
 		}
