@@ -3,6 +3,7 @@ package io.yancey.menufetcher;
 import java.io.*;
 import java.net.*;
 import java.time.*;
+import java.time.format.*;
 import java.util.*;
 import java.util.regex.*;
 
@@ -70,9 +71,9 @@ public class SodexoMenuFetcher extends AbstractMenuFetcher {
 		return null;
 	}
 	
-	public Element getMenu(LocalDate day, Document menuPage) {
-		Elements menus = menuPage.getElementsByClass("dayinner");
-		return menus.get(day.getDayOfWeek().getValue() - 1).child(0);
+	public Element getMenu(LocalDate day, Document menuPage) throws MenuNotAvailableException {
+		return menuPage.getElementById(day.getDayOfWeek().getDisplayName(
+				TextStyle.FULL_STANDALONE, Locale.ENGLISH).toLowerCase());
 	}
 	
 	public String getPublicMenuUrl(String menuUrl, LocalDate day) {
@@ -149,6 +150,6 @@ public class SodexoMenuFetcher extends AbstractMenuFetcher {
 	}
 
 	public static void main(String[] args) throws MenuNotAvailableException, MalformedMenuException {
-		System.out.println(new SodexoMenuFetcher("Scripps", "scripps", SCRIPPS_SITENAME).getMeals(LocalDate.of(2016, 01, 23)));
+		System.out.println(new SodexoMenuFetcher("Scripps", "scripps", SCRIPPS_SITENAME).getMeals(LocalDate.of(2016, 03, 20)));
 	}
 }
