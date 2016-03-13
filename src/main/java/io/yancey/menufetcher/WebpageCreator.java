@@ -110,26 +110,28 @@ public class WebpageCreator {
 	}
 	
 	public static void main(String[] args) {
-		/*for(LocalDate day = LocalDate.of(2016, 01, 05); day.isBefore(LocalDate.of(2016, 02, 05)); day = day.plusDays(1)) {
-			createAndSaveWebpage(day);
-		}*/
-		if(args.length != 1) {
+		switch(args.length) {
+		case 0:
 			createAndSaveWebpage(".", LocalDate.now());
 			return;
-		}
-		//createAndSaveWebpage(LocalDate.now());
-		for(LocalDate day = LocalDate.now(); day.isBefore(LocalDate.now().plusDays(7)); day = day.plusDays(1)) {
-			try {
-				createAndSaveWebpage(args[0], day);
-			} catch(Throwable t) {
-				System.err.println("Failed to create webpage for day "+day);
-				t.printStackTrace();
+		case 1:
+			for(LocalDate day = LocalDate.now(); day.isBefore(LocalDate.now().plusDays(7)); day = day.plusDays(1)) {
+				try {
+					createAndSaveWebpage(args[0], day);
+				} catch(Throwable t) {
+					System.err.println("Failed to create webpage for day "+day);
+					t.printStackTrace();
+				}
 			}
-		}
-		try(FileWriter index = new FileWriter(new File(args[0], "index.html"))) {
-			index.write("<html><head><meta http-equiv=\"refresh\" content=\"0; URL=" + LocalDate.now().toString() + ".html\"></head><body>Redirecting you to <a href=\"" + LocalDate.now().toString() + ".html\">the current menu</a></body></html>");
-		} catch (IOException e) {
-			e.printStackTrace();
+			try(FileWriter index = new FileWriter(new File(args[0], "index.html"))) {
+				index.write("<html><head><meta http-equiv=\"refresh\" content=\"0; URL=" + LocalDate.now().toString() + ".html\"></head><body>Redirecting you to <a href=\"" + LocalDate.now().toString() + ".html\">the current menu</a></body></html>");
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		case 2:
+			createAndSaveWebpage(args[0], LocalDate.parse(args[1]));
+		default:
+			throw new IllegalArgumentException("Too many arguments; perhaps you forgot to quote the filename");
 		}
 	}
 }
