@@ -128,8 +128,10 @@ public class WebpageCreator {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
+			return;
 		case 2:
 			createAndSaveWebpage(args[0], LocalDate.parse(args[1]));
+			return;
 		default:
 			throw new IllegalArgumentException("Too many arguments; perhaps you forgot to quote the filename");
 		}
