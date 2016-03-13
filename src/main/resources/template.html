@@ -42,6 +42,9 @@
           position: absolute;
           left: -.5em;
       }
+      th.menu-title {
+          background-color: #eeeeee;
+      }
     </style>
   </head>
   <body>
@@ -103,7 +106,19 @@
     </table>
     <br />
     <table id="menu" class="menu">
-      
+      <tbody>
+        <tr>
+          <th colspan="5" class="menu-title menu-cell">Menu</th>
+        </tr>
+        <tr id="menu-header-meals">
+          <td class="menu-cell" id="menu-header-dining-halls">Dining Hall</td>
+          <td class="menu-cell" id="menu-header-stations">Station</td>
+          <td class="menu-cell" id="menu-header-meals-breakfast">Breakfast</td>
+          <td class="menu-cell" id="menu-header-meals-lunch">Lunch</td>
+          <td class="menu-cell" id="menu-header-meals-brunch">Brunch</td>
+          <td class="menu-cell" id="menu-header-meals-dinner">Dinner</td>
+        </tr>
+      </tbody>
     </table>
   </body>
 </html>
