@@ -222,11 +222,11 @@ public class WebpageCreator {
 				e.printStackTrace();
 			}
 			return;
-		case 2:
-			createAndSaveWebpage(args[0], LocalDate.parse(args[1]));
-			return;
 		default:
-			throw new IllegalArgumentException("Too many arguments; perhaps you forgot to quote the filename");
+			for(int i = 1; i < args.length; i++) {
+				createAndSaveWebpage(args[0], LocalDate.parse(args[i]));
+			}
+			return;
 		}
 	}
 }
