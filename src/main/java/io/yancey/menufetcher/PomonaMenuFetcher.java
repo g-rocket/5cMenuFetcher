@@ -20,6 +20,9 @@ public class PomonaMenuFetcher extends AbstractMenuFetcher {
 	public static final String FRANK_NAME = "frank";
 	public static final String FRARY_NAME = "frary";
 	public static final String OLDENBORG_NAME = "oldenborg";
+
+	protected Map<String, Document> documentCache = new HashMap<>();
+	protected Map<String, JsonElement> jsonCache = new HashMap<>();
 	
 	public PomonaMenuFetcher(String name, String id, String sitename) {
 		super(name, id);
@@ -52,17 +55,21 @@ public class PomonaMenuFetcher extends AbstractMenuFetcher {
 	private JsonArray getSpreadsheets(Element menuSpreadsheetInfo)
 			throws MalformedMenuException, MenuNotAvailableException {
 		String url = getDocumentUrl(menuSpreadsheetInfo);
+		if(!jsonCache.containsKey(url)) {
 		try(Scanner sc = new Scanner(new URL(url).openStream(), "UTF-8")) {
 			sc.useDelimiter("\\A");
 			String spreadsheetsString = sc.hasNext()? sc.next(): "";
-			return new JsonParser().parse(spreadsheetsString).getAsJsonObject()
+			jsonCache.put(url,
+					new JsonParser().parse(spreadsheetsString).getAsJsonObject()
 					.getAsJsonObject("feed")
-					.getAsJsonArray("entry");
+					.getAsJsonArray("entry"));
 		} catch (MalformedURLException e) {
 			throw new MalformedMenuException("Invalid spreadsheets url", e);
 		} catch (IOException e) {
 			throw new MenuNotAvailableException("Error fetching spreadsheets",e);
 		}
+		}
+		return jsonCache.get(url).getAsJsonArray();
 	}
 	
 	private static final Pattern spreadsheetDateStringRegex = 
@@ -111,17 +118,21 @@ public class PomonaMenuFetcher extends AbstractMenuFetcher {
 	private JsonArray getSpreadsheetData(JsonObject spreadsheetInfo)
 			throws MalformedMenuException, MenuNotAvailableException {
 		String url = getSpreadsheetUrl(spreadsheetInfo);
-		try(Scanner sc = new Scanner(new URL(url).openStream(), "UTF-8")) {
-			sc.useDelimiter("\\A");
-			String spreadsheetString = sc.hasNext()? sc.next(): "";
-			return new JsonParser().parse(spreadsheetString).getAsJsonObject()
-					.getAsJsonObject("feed")
-					.getAsJsonArray("entry");
-		} catch (MalformedURLException e) {
-			throw new MalformedMenuException("Invalid spreadsheet url",e);
-		} catch (IOException e) {
-			throw new MenuNotAvailableException("Error fetching spreadsheet data",e);
+		if(!jsonCache.containsKey(url)) {
+			try(Scanner sc = new Scanner(new URL(url).openStream(), "UTF-8")) {
+				sc.useDelimiter("\\A");
+				String spreadsheetString = sc.hasNext()? sc.next(): "";
+				jsonCache.put(url,
+						new JsonParser().parse(spreadsheetString).getAsJsonObject()
+						.getAsJsonObject("feed")
+						.getAsJsonArray("entry"));
+			} catch (MalformedURLException e) {
+				throw new MalformedMenuException("Invalid spreadsheet url",e);
+			} catch (IOException e) {
+				throw new MenuNotAvailableException("Error fetching spreadsheet data",e);
+			}
 		}
+		return jsonCache.get(url).getAsJsonArray();
 	}
 	
 	private int getCols(JsonObject spreadsheetInfo) {
@@ -228,12 +239,14 @@ public class PomonaMenuFetcher extends AbstractMenuFetcher {
 	
 	@Override
 	public Menu getMeals(LocalDate day) throws MalformedMenuException, MenuNotAvailableException {
-		Document menuInfoPage;
-		try {
-			menuInfoPage = Jsoup.connect(getMenuUrl()).get();
-		} catch (IOException e) {
-			throw new MenuNotAvailableException("Error fetching menu info",e);
+		if(!documentCache.containsKey(getMenuUrl())) {
+			try {
+				documentCache.put(getMenuUrl(), Jsoup.connect(getMenuUrl()).get());
+			} catch (IOException e) {
+				throw new MenuNotAvailableException("Error fetching menu info",e);
+			}
 		}
+		Document menuInfoPage = documentCache.get(getMenuUrl());
 		Element menuSpreadsheetInfo = getMenuSpreadsheetInfo(menuInfoPage);
 		JsonObject spreadsheetInfo = getSpreadsheetInfo(day, menuSpreadsheetInfo);
 		if(spreadsheetInfo == null) {
