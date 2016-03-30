@@ -11,6 +11,8 @@ import org.jsoup.*;
 import org.jsoup.nodes.*;
 import org.jsoup.select.*;
 
+import com.google.gson.JsonParser;
+
 public class SodexoMenuFetcher extends AbstractMenuFetcher {
 	public static final String HOCH_SITENAME = "hmc";
 	public static final int HOCH_TCM = 1300;
@@ -31,13 +33,51 @@ public class SodexoMenuFetcher extends AbstractMenuFetcher {
 	}
 	
 	private String getMenuUrl(LocalDate day) throws MenuNotAvailableException, MalformedMenuException {
+		String menuUrl = null;
 		try {
-			return getMenuUrlFromPortal(day);
+			menuUrl = getMenuUrlFromPortal(day);
 		} catch(MenuNotAvailableException e) {
-			throw e;
+			if(DayOfWeek.MONDAY.adjustInto(day).equals(
+					DayOfWeek.MONDAY.adjustInto(LocalDate.now()))) {
+				menuUrl = getMenuUrlFromFrontpage(day);
+			}
+			if(menuUrl == null) throw e;
 		}
+		if(menuUrl == null && DayOfWeek.MONDAY.adjustInto(day).equals(
+				DayOfWeek.MONDAY.adjustInto(LocalDate.now()))) {
+			menuUrl = getMenuUrlFromFrontpage(day);
+		}
+		return menuUrl;
 	}
 	
+	private String getFrontpageUrl() {
+		return "https://" + sitename + ".sodexomyway.com/?forcedesktop=true";
+	}
+	
+	private Pattern menuUrlPattern = null;
+	private Pattern getMenuUrlPattern() {
+		if(menuUrlPattern == null) {
+			menuUrlPattern = Pattern.compile("/[Ii]mages/WeeklyMenu_tcm" + tcmId + "-([0-9]+)\\.htm");
+		}
+		return menuUrlPattern;
+	}
+	
+	private String getMenuUrlFromFrontpage(LocalDate day)
+			throws MalformedMenuException, MenuNotAvailableException {
+		String frontpageString;
+		try(Scanner sc = new Scanner(new URL(getFrontpageUrl()).openStream(), "UTF-8")) {
+			sc.useDelimiter("\\A");
+			frontpageString = sc.hasNext()? sc.next(): "";
+		} catch (MalformedURLException e) {
+			throw new MalformedMenuException("Invalid frontpage url", e);
+		} catch (IOException e) {
+			throw new MenuNotAvailableException("Error fetching frontpage",e);
+		}
+		Matcher menuUrlMatcher = getMenuUrlPattern().matcher(frontpageString);
+		if(!menuUrlMatcher.find()) return null;
+		return "https://" + sitename + ".sodexomyway.com" + menuUrlMatcher.group(0);
+	}
+
 	private String getPortalUrl() {
 		return "https://" + sitename + ".sodexomyway.com/dining-choices/index.html?forcedesktop=true";
 	}
@@ -108,6 +148,10 @@ public class SodexoMenuFetcher extends AbstractMenuFetcher {
 			}
 		}
 		Document menuPage = pageCache.get(menuUrl);
+		String thisWeekString = ((LocalDate)DayOfWeek.MONDAY.adjustInto(day)).format(DateTimeFormatter.ofPattern("EEEE MMMM d, yyyy", Locale.ENGLISH));
+		if(!menuPage.getElementsByClass("titlecell").text().contains(thisWeekString)) {
+			throw new MalformedMenuException("We fetched the menu for the wrong week");
+		}
 		Element menu = getMenu(day, menuPage);
 		List<Meal> meals = new ArrayList<>(3);
 		for(String mealName: mealNames) {
@@ -165,6 +209,6 @@ public class SodexoMenuFetcher extends AbstractMenuFetcher {
 	}
 
 	public static void main(String[] args) throws MenuNotAvailableException, MalformedMenuException {
-		System.out.println(new SodexoMenuFetcher("Scripps", "scripps", SCRIPPS_SITENAME, SCRIPPS_TCM).getMeals(LocalDate.of(2016, 03, 20)));
+		System.out.println(new SodexoMenuFetcher("The Hoch", "hoch", HOCH_SITENAME, HOCH_TCM).getMeals(LocalDate.of(2016, 03, 30)));
 	}
 }
