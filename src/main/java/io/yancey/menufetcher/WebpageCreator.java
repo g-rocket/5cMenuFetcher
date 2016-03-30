@@ -9,6 +9,8 @@ import org.jsoup.*;
 import org.jsoup.nodes.*;
 import org.jsoup.select.*;
 
+import com.google.common.io.Files;
+
 public class WebpageCreator {
 	
 	public static Document createWebpage(LocalDate day) {
@@ -216,9 +218,10 @@ public class WebpageCreator {
 					t.printStackTrace();
 				}
 			}
-			try(FileWriter index = new FileWriter(new File(args[0], "index.html"))) {
-				index.write("<html><head><meta http-equiv=\"refresh\" content=\"0; URL=" + LocalDate.now().toString() + ".html\"></head><body>Redirecting you to <a href=\"" + LocalDate.now().toString() + ".html\">the current menu</a></body></html>");
+			try {
+				Files.copy(new File(args[0], LocalDate.now().toString() + ".html"), new File(args[0], "index.html"));
 			} catch (IOException e) {
+				System.err.println("Failed to create index");
 				e.printStackTrace();
 			}
 			return;
