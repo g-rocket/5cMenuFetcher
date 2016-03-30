@@ -55,7 +55,7 @@ public class WebpageCreator {
 		for(Menu menu: menus) {
 			Element nameCell = template.getElementById("menu-summary-title-" + menu.diningHallId);
 			Element nameLink = nameCell.appendElement("a");
-			nameLink.attr("href", menu.publicUrl);
+			nameLink.attr("id", "menu-summary-"+menu.diningHallId+"-link-to-full");
 			nameLink.text(menu.diningHallName);
 		}
 		boolean hasLunch = false;
@@ -82,7 +82,7 @@ public class WebpageCreator {
 	private static void addFullMenus(Document template, List<Menu> menus) {
 		Element menuTable = template.getElementById("menu").child(0);
 		for(Menu menu: menus) {
-			addStationNames(menuTable, menu);
+			addStationNames(template, menuTable, menu);
 		}
 		
 		List<String> mealTitles = setupMealTitles(template, menus);
@@ -139,7 +139,7 @@ public class WebpageCreator {
 		return mealTitles;
 	}
 	
-	private static void addStationNames(Element menuTable, Menu menu) {
+	private static void addStationNames(Document template, Element menuTable, Menu menu) {
 		List<String> stationNames = new ArrayList<>();
 		for(Meal meal: menu.meals) {
 			for(Station station: meal.stations) {
@@ -155,11 +155,15 @@ public class WebpageCreator {
 			stationRow.attr("id","menu-row-"+menu.diningHallId+"-"+stationId);
 			stationRow.addClass("menu-row-"+menu.diningHallId);
 			if(isFirstStation) {
+				Element summaryLinkToFull = template.getElementById("menu-summary-"+menu.diningHallId+"-link-to-full");
+				summaryLinkToFull.attr("href", "#"+stationRow.id());
 				Element diningHallName = stationRow.appendElement("td");
 				diningHallName.attr("id", "menu-title-" + menu.diningHallId);
 				diningHallName.addClass("menu-cell");
 				diningHallName.addClass("menu-title");
-				diningHallName.text(menu.diningHallName);
+				Element nameLink = diningHallName.appendElement("a");
+				nameLink.attr("href", menu.publicUrl);
+				nameLink.text(menu.diningHallName);
 				diningHallName.attr("rowspan",Integer.toString(stationNames.size()));
 				isFirstStation = false;
 			}
