@@ -63,7 +63,7 @@ public class InterestingItemExtractor {
 				} else if(rule.getAsString().equals("single")) {
 					StringBuilder newName = new StringBuilder();
 					for(MenuItem item: baseStation.menu) {
-						newName.append(item.name);
+						newName.append(item.name.replaceAll("(^\\h*)|(\\h*$)",""));
 						newName.append(", ");
 					}
 					newName.delete(newName.length() - 2, newName.length());
