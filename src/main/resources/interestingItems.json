@@ -2,7 +2,12 @@
 	"hoch": {
 		"Lunch": {
 			"Exhibition": 1,
-			"Creations": 1
+			"Creations": {
+				"include-if": {
+					"not-contains": "Salad"
+				},
+				"number": 1
+			}
 		},
 		"Dinner": {
 			"Oven": {
@@ -43,15 +48,18 @@
 	},
 	"frary": {
 		"Lunch": {
-			"Expo": "single"
+			"Expo": "single",
+			"Mainline": "single"
 		},
 		"Dinner": {
-			"Expo": "single"
+			"Expo": "single",
+			"Mainline": "single"
 		}
 	},
 	"oldenborg": {
 		"Lunch": {
 			"Entrée 1": 1,
+			"Entrée": 1,
 			"Specialties": 1
 		},
 		"Dinner": {}
