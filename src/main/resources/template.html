@@ -4,53 +4,134 @@
     <meta charset="UTF-8">
     <title>5c Menu 2.0</title>
     <style>
+      @font-face {
+        font-family: 'TeX Gyre Heros';
+        font-weight: normal;
+        src: url('http://images.clonecomputers.net/fonts/texgyreheros-regular.otf') format('otf');
+      }
+      @font-face {
+        font-family: 'TeX Gyre Heros';
+        font-weight: bold;
+        src: url('http://images.clonecomputers.net/fonts/texgyreheros-bold.otf') format('otf');
+      }
+      
+      body {
+          background-color: #404040;
+      }
+      
+      h1 {
+          text-color: #fff;
+      }
+      
+      #header {
+          color: #fff;
+      }
+      
+      #header :not(.day-list-item) > a:link, #header :not(.day-list-item) > a:visited {
+          color: #ccc;
+      }
+      
+      .day-list-item a:link, .day-list-item a:visited {
+          color: #fff
+      }
+      
+      .day-list-item {
+          background-color: #222
+      }
+      
+      .day-list-item.day-list-item-selected {
+          background-color: #666
+      }
+      
+      * {
+        font-family: 'TeX Gyre Heros';
+      }
+      
       .day-list-item > a {
         text-decoration: none;
       }
+      
       .day-list {
         border-collapse: collapse;
       }
+      
       .day-list-item {
         text-align: center;
         border: 1px solid black;
       }
+      
       .day-list-item-selected {
         background-color: #dddddd;
       }
+      
       .menu {
         border-collapse: collapse;
       }
+      
       .menu-cell {
         text-align: center;
         border: 1px solid black;
         vertical-align: top;
       }
+      
       .menu-title {
         vertical-align: middle;
       }
+      
       .menu-item-list {
         text-align: left;
         margin: 0;
         padding-left: 15px;
         list-style: none;
       }
+      
       .menu-item-list > li {
         position: relative;
       }
+      
       .menu-item-list > li:before {
-          content: '\2022';
-          position: absolute;
-          left: -.5em;
+        content: '\2022';
+        position: absolute;
+        left: -.5em;
       }
+      
       th.menu-title {
-          background-color: #eeeeee;
+        background-color: #dddddd;
+      }
+      
+      td.menu-header {
+        background-color: #eeeeee;
+      }
+            
+      .hoch {
+        background-color: #ffffcc;
+      }
+           
+      .pitzer {
+        background-color: #ffe0cc;
+      }
+      
+      .frank, .frary, .oldenborg {
+        background-color: #cceeff;
+      }
+      
+      .scripps {
+        background-color: #cceecc;
+      }
+      
+      .collins {
+        background-color: #eecccc;
+      }
+      
+      .menu:not(.colored){
+        background-color: #999999;
       }
     </style>
   </head>
   <body>
     <div id="header" class="header">
       <h1>5c Menu 2.0</h1>
-      <a href="https://github.com/g-rocket/5cMenuFetcher/"><p>Source code on GitHub</p></a>
+      <p><a href="https://github.com/g-rocket/5cMenuFetcher/">Source code on GitHub</a></p>
       <table id="day-list" class="day-list">
         <tbody>
           <tr>
@@ -74,34 +155,34 @@
           <th colspan="8" class="menu-title menu-cell">Summary</th>
         </tr>
         <tr id="menu-summary-dining-halls">
-          <td class="menu-cell" id="menu-summary-title-meal-list-spacer"></td>
-          <td class="menu-cell" id="menu-summary-title-hoch"></td>
-          <td class="menu-cell" id="menu-summary-title-pitzer"></td>
-          <td class="menu-cell" id="menu-summary-title-frank"></td>
-          <td class="menu-cell" id="menu-summary-title-frary"></td>
-          <td class="menu-cell" id="menu-summary-title-oldenborg"></td>
-          <td class="menu-cell" id="menu-summary-title-scripps"></td>
-          <td class="menu-cell" id="menu-summary-title-collins"></td>
+          <td id="menu-summary-title-meal-list-spacer" class="menu-cell menu-spacer menu-header"></td>
+          <td id="menu-summary-title-hoch"             class="menu-cell"></td>
+          <td id="menu-summary-title-pitzer"           class="menu-cell"></td>
+          <td id="menu-summary-title-frank"            class="menu-cell"></td>
+          <td id="menu-summary-title-frary"            class="menu-cell"></td>
+          <td id="menu-summary-title-oldenborg"        class="menu-cell"></td>
+          <td id="menu-summary-title-scripps"          class="menu-cell"></td>
+          <td id="menu-summary-title-collins"          class="menu-cell"></td>
         </tr>
         <tr id="menu-summary-lunch">
-          <td id="menu-summary-lunch-label" class="menu-cell menu-title">Lunch</td>
-          <td id="menu-summary-lunch-hoch" class="menu-cell"></td>
-          <td id="menu-summary-lunch-pitzer" class="menu-cell"></td>
-          <td id="menu-summary-lunch-frank" class="menu-cell"></td>
-          <td id="menu-summary-lunch-frary" class="menu-cell"></td>
+          <td id="menu-summary-lunch-label"     class="menu-cell menu-title menu-header">Lunch</td>
+          <td id="menu-summary-lunch-hoch"      class="menu-cell"></td>
+          <td id="menu-summary-lunch-pitzer"    class="menu-cell"></td>
+          <td id="menu-summary-lunch-frank"     class="menu-cell"></td>
+          <td id="menu-summary-lunch-frary"     class="menu-cell"></td>
           <td id="menu-summary-lunch-oldenborg" class="menu-cell"></td>
-          <td id="menu-summary-lunch-scripps" class="menu-cell"></td>
-          <td id="menu-summary-lunch-collins" class="menu-cell"></td>
+          <td id="menu-summary-lunch-scripps"   class="menu-cell"></td>
+          <td id="menu-summary-lunch-collins"   class="menu-cell"></td>
         </tr>
         <tr id="menu-summary-dinner">
-          <td id="menu-summary-dinner-label" class="menu-cell menu-title">Dinner</td>
-          <td id="menu-summary-dinner-hoch" class="menu-cell"></td>
-          <td id="menu-summary-dinner-pitzer" class="menu-cell"></td>
-          <td id="menu-summary-dinner-frank" class="menu-cell"></td>
-          <td id="menu-summary-dinner-frary" class="menu-cell"></td>
+          <td id="menu-summary-dinner-label"     class="menu-cell menu-title menu-header">Dinner</td>
+          <td id="menu-summary-dinner-hoch"      class="menu-cell"></td>
+          <td id="menu-summary-dinner-pitzer"    class="menu-cell"></td>
+          <td id="menu-summary-dinner-frank"     class="menu-cell"></td>
+          <td id="menu-summary-dinner-frary"     class="menu-cell"></td>
           <td id="menu-summary-dinner-oldenborg" class="menu-cell"></td>
-          <td id="menu-summary-dinner-scripps" class="menu-cell"></td>
-          <td id="menu-summary-dinner-collins" class="menu-cell"></td>
+          <td id="menu-summary-dinner-scripps"   class="menu-cell"></td>
+          <td id="menu-summary-dinner-collins"   class="menu-cell"></td>
         </tr>
       </tbody>
     </table>
@@ -109,15 +190,15 @@
     <table id="menu" class="menu">
       <tbody>
         <tr>
-          <th colspan="5" class="menu-title menu-cell">Menu</th>
+          <th colspan="5" class="menu-title menu-cell main">Menu</th>
         </tr>
         <tr id="menu-header-meals">
-          <td class="menu-cell" id="menu-header-dining-halls">Dining Hall</td>
-          <td class="menu-cell" id="menu-header-stations">Station</td>
-          <td class="menu-cell" id="menu-header-meals-breakfast">Breakfast</td>
-          <td class="menu-cell" id="menu-header-meals-lunch">Lunch</td>
-          <td class="menu-cell" id="menu-header-meals-brunch">Brunch</td>
-          <td class="menu-cell" id="menu-header-meals-dinner">Dinner</td>
+          <td id="menu-header-dining-halls"    class="menu-cell menu-header">Dining Hall</td>
+          <td id="menu-header-stations"        class="menu-cell menu-header">Station</td>
+          <td id="menu-header-meals-breakfast" class="menu-cell menu-header">Breakfast</td>
+          <td id="menu-header-meals-lunch"     class="menu-cell menu-header">Lunch</td>
+          <td id="menu-header-meals-brunch"    class="menu-cell menu-header">Brunch</td>
+          <td id="menu-header-meals-dinner"    class="menu-cell menu-header">Dinner</td>
         </tr>
       </tbody>
     </table>

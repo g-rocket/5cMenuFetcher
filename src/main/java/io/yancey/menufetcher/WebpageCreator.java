@@ -7,7 +7,6 @@ import java.util.*;
 
 import org.jsoup.*;
 import org.jsoup.nodes.*;
-import org.jsoup.select.*;
 
 import com.google.common.io.Files;
 
@@ -54,6 +53,8 @@ public class WebpageCreator {
 	private static void addMenuSummary(Document template, List<Menu> menus) {
 		for(Menu menu: menus) {
 			Element nameCell = template.getElementById("menu-summary-title-" + menu.diningHallId);
+			nameCell.addClass(menu.diningHallId);
+			nameCell.addClass("colored");
 			Element nameLink = nameCell.appendElement("a");
 			nameLink.attr("id", "menu-summary-"+menu.diningHallId+"-link-to-full");
 			nameLink.text(menu.diningHallName);
@@ -65,6 +66,8 @@ public class WebpageCreator {
 					hasLunch = true;
 				}
 				Element cell = template.getElementById("menu-summary-"+meal.name.toLowerCase()+"-"+menu.diningHallId);
+				cell.addClass(menu.diningHallId);
+				cell.addClass("colored");
 				if(!meal.description.isEmpty()) {
 					cell.appendText(meal.description);
 				}
@@ -149,11 +152,15 @@ public class WebpageCreator {
 			}
 		}
 		boolean isFirstStation = true;
+		boolean isOddRow = true;
 		for(String station: stationNames) {
 			String stationId = getStationIdFromName(station);
 			Element stationRow = menuTable.appendElement("tr");
 			stationRow.attr("id","menu-row-"+menu.diningHallId+"-"+stationId);
 			stationRow.addClass("menu-row-"+menu.diningHallId);
+			stationRow.addClass(menu.diningHallId);
+			stationRow.addClass("colored");
+			isOddRow = !isOddRow;
 			if(isFirstStation) {
 				Element summaryLinkToFull = template.getElementById("menu-summary-"+menu.diningHallId+"-link-to-full");
 				summaryLinkToFull.attr("href", "#"+stationRow.id());
@@ -189,7 +196,7 @@ public class WebpageCreator {
 				tableItem.addClass("day-list-item-selected");
 			}
 			Element link = tableItem.appendElement("a");
-			link.text(dayOfWeek.getDisplayName(TextStyle.FULL_STANDALONE, Locale.US));
+			link.appendElement("u").text(dayOfWeek.getDisplayName(TextStyle.FULL_STANDALONE, Locale.US));
 			link.appendElement("br");
 			link.appendText(tagDay.toString());
 			link.attr("href", tagDay.toString() + ".html");
