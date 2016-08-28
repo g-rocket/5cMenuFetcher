@@ -5,7 +5,11 @@ import java.net.*;
 import java.time.*;
 import java.time.format.*;
 import java.util.*;
+import java.util.regex.*;
 import java.util.stream.*;
+
+import org.jsoup.*;
+import org.jsoup.nodes.*;
 
 import com.google.gson.*;
 
@@ -55,13 +59,23 @@ public class BonAppetitMenuFetcher extends AbstractMenuFetcher {
 				.getAsJsonObject("cafes")
 				.getAsJsonObject(Integer.toString(cafeId))
 				.getAsJsonArray("dayparts");
-		if(mealsDataParts.size() == 0) {
-			return new Menu(name, id, getMenuUrl(day), Collections.emptyList());
-		}
-		JsonArray mealsData = mealsDataParts
-				.get(0).getAsJsonArray();
 		JsonObject itemsData = menuData
 				.getAsJsonObject("items");
+		JsonArray mealsData;
+		if(mealsDataParts.size() > 0 && mealsDataParts.get(0).getAsJsonArray().size() > 0) {
+			mealsData = mealsDataParts
+					.get(0).getAsJsonArray();
+		} else if(isInCurrentWeek(day)) {
+			System.err.printf("%s missing dayparts: trying RSS feed\n", name);
+			mealsData = getMealsDataFromRSS(day, itemsData);
+			if(mealsData == null) {
+				System.err.println("fetching RSS failed");
+				return new Menu(name, id, getMenuUrl(day), Collections.emptyList());
+			}
+		} else {
+			System.err.printf("%s missing dayparts; RSS not available\n", name);
+			return new Menu(name, id, getMenuUrl(day), Collections.emptyList());
+		}
 		List<Meal> meals = new ArrayList<>(3);
 		for(JsonElement mealData: mealsData) {
 			meals.add(createMeal(mealData.getAsJsonObject(), itemsData));
@@ -69,6 +83,113 @@ public class BonAppetitMenuFetcher extends AbstractMenuFetcher {
 		return new Menu(name, id, getMenuUrl(day), meals);
 	}
 	
+	private JsonArray getMealsDataFromRSS(LocalDate day, JsonObject itemsData) {
+		Document rssFeed;
+		try {
+			rssFeed = Jsoup.connect(getRssUrl()).get();
+		} catch (IOException e) {
+			System.err.println("error loading RSS");
+			return null;
+		}
+		
+		for(Element item: rssFeed.getElementsByTag("item")) {
+			String dateString = item.getElementsByTag("title").get(0).text();
+			LocalDate itemDate = LocalDate.parse(dateString, DateTimeFormatter.ofPattern("EEE, dd MMM yyyy"));
+			if(itemDate.equals(day)) {
+				String itemText = item.getElementsByTag("description").get(0).text();
+				return formatAsMealsData(itemText, itemsData);
+			}
+		}
+		return null;
+	}
+
+	private static final Pattern mealTitleRegex = Pattern.compile("<h3>([^<]+)</h3>");
+	private JsonArray formatAsMealsData(String feedItemText, JsonObject itemsData) {
+		JsonArray mealsData = new JsonArray();
+		Matcher mealTitleMatcher = mealTitleRegex.matcher(feedItemText);
+		if(!mealTitleMatcher.find()) return null;
+		while(!mealTitleMatcher.hitEnd()) {
+			String mealTitle = mealTitleMatcher.group(1);
+			int mealStart = mealTitleMatcher.end();
+			int mealEnd;
+			if(mealTitleMatcher.find()) {
+				mealEnd = mealTitleMatcher.start();
+			} else {
+				mealEnd = feedItemText.length();
+			}
+			
+			JsonObject mealData = createMealDataFromRss(mealTitle, 
+					feedItemText.substring(mealStart, mealEnd), itemsData);
+			if(mealData != null) {
+				mealsData.add(mealData);
+			} else {
+				System.err.printf("error adding %s\n", mealTitle);
+			}
+		}
+		return mealsData;
+	}
+
+	private static final Pattern itemRegex = Pattern.compile("<h4>\\s*\\[([^]]+)\\]\\s*([^<]+)</h4>");
+	private JsonObject createMealDataFromRss(String mealTitle, String mealDataString, JsonObject itemsData) {
+		Map<String, JsonArray> stationsMap = new HashMap<>();
+		Matcher itemMatcher = itemRegex.matcher(mealDataString);
+		
+		while(itemMatcher.find()) {
+			String stationName = itemMatcher.group(1);
+			String itemName = itemMatcher.group(2);
+			
+			if(!stationsMap.containsKey(stationName)) {
+				stationsMap.put(stationName, new JsonArray());
+			}
+			String itemId = guessItemId(itemName, itemsData);
+			if(itemId != null) {
+				stationsMap.get(stationName).add(itemId);
+			} else {
+				System.err.println("error getting id for "+itemName);
+			}
+		}
+		
+		JsonArray stations = new JsonArray();
+		for(Map.Entry<String, JsonArray> stationData: stationsMap.entrySet()) {
+			JsonObject station = new JsonObject();
+			station.addProperty("label", stationData.getKey());
+			station.add("items", stationData.getValue());
+			stations.add(station);
+		}
+		
+		JsonObject mealData = new JsonObject();
+		mealData.addProperty("label", mealTitle);
+		mealData.add("stations", stations);
+		
+		//TODO: fake these better
+		mealData.addProperty("starttime", "00:00");
+		mealData.addProperty("endtime", "00:00");
+		
+		return mealData;
+	}
+
+	private String guessItemId(String itemName, JsonObject itemsData) {
+		itemName = itemName.trim();
+		if(itemName.endsWith("&nbsp;")) itemName = itemName.substring(0, itemName.length() - 6);
+		for(Map.Entry<String, JsonElement> itemData: itemsData.entrySet()) {
+			if(itemData.getValue().getAsJsonObject().get("label").getAsString().equalsIgnoreCase(itemName)) {
+				return itemData.getKey();
+			}
+		}
+		return null;
+	}
+
+	private String getRssUrl() {
+		return "http://legacy.cafebonappetit.com/rss/menu/" + cafeId;
+	}
+
+	private static boolean isInCurrentWeek(LocalDate day) {
+		LocalDate today = LocalDate.now(ZoneId.of("America/Los_Angeles"));
+		LocalDate startOfWeek = (LocalDate)DayOfWeek.MONDAY.adjustInto(today);
+		LocalDate endOfWeek = (LocalDate)DayOfWeek.SUNDAY.adjustInto(today);
+		return !today.isBefore(startOfWeek) && !today.isAfter(endOfWeek);
+	}
+
 	private Meal createMeal(JsonObject mealData, JsonObject itemsData) {
 		List<Station> stations = new ArrayList<>();
 		for(JsonElement stationData: mealData.getAsJsonArray("stations")) {
@@ -103,8 +224,8 @@ public class BonAppetitMenuFetcher extends AbstractMenuFetcher {
 	}
 
 	public static void main(String[] args) throws MenuNotAvailableException, MalformedMenuException {
-		System.out.println(new BonAppetitMenuFetcher("Collins", "collins", COLLINS_ID,
-				COLLINS_PUBLIC_MENU_URL_CAFE, COLLINS_PUBLIC_MENU_URL_CAFE).getMeals(java.time.LocalDate.of(2016, 01, 21)));
+		System.out.println(new BonAppetitMenuFetcher("Pitzer", "pitzer", PITZER_ID,
+				PITZER_PUBLIC_MENU_URL_CAFE, PITZER_PUBLIC_MENU_URL_CAFE).getMeals(java.time.LocalDate.of(2016, 8, 28)));
 	}
 	
 	private String getMenuUrl(LocalDate day) {
