@@ -88,7 +88,7 @@ public class SodexoMenuFetcher extends AbstractMenuFetcher {
 			throws MenuNotAvailableException, MalformedMenuException {
 		if(!pageCache.containsKey(getPortalUrl())) {
 			try {
-				pageCache.put(getPortalUrl(), Jsoup.connect(getPortalUrl()).get());
+				pageCache.put(getPortalUrl(), Jsoup.connect(getPortalUrl()).timeout(10*1000).get());
 			} catch (IOException e) {
 				throw new MenuNotAvailableException("Error fetching portal", e);
 			}

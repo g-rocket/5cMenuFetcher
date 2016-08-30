@@ -241,7 +241,7 @@ public class PomonaMenuFetcher extends AbstractMenuFetcher {
 	public Menu getMeals(LocalDate day) throws MalformedMenuException, MenuNotAvailableException {
 		if(!documentCache.containsKey(getMenuUrl())) {
 			try {
-				documentCache.put(getMenuUrl(), Jsoup.connect(getMenuUrl()).get());
+				documentCache.put(getMenuUrl(), Jsoup.connect(getMenuUrl()).timeout(10*1000).get());
 			} catch (IOException e) {
 				throw new MenuNotAvailableException("Error fetching menu info",e);
 			}

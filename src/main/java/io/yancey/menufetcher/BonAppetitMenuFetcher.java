@@ -10,6 +10,7 @@ import java.util.stream.*;
 
 import org.jsoup.*;
 import org.jsoup.nodes.*;
+import org.jsoup.parser.Parser;
 
 import com.google.gson.*;
 
@@ -86,20 +87,22 @@ public class BonAppetitMenuFetcher extends AbstractMenuFetcher {
 	private JsonArray getMealsDataFromRSS(LocalDate day, JsonObject itemsData) {
 		Document rssFeed;
 		try {
-			rssFeed = Jsoup.connect(getRssUrl()).get();
+			rssFeed = Jsoup.connect(getRssUrl()).timeout(10*1000).get();
 		} catch (IOException e) {
 			System.err.println("error loading RSS");
 			return null;
 		}
 		
 		for(Element item: rssFeed.getElementsByTag("item")) {
-			String dateString = item.getElementsByTag("title").get(0).text();
+			String dateString = Parser.unescapeEntities(item.getElementsByTag("title").get(0).text(), false);
 			LocalDate itemDate = LocalDate.parse(dateString, DateTimeFormatter.ofPattern("EEE, dd MMM yyyy"));
 			if(itemDate.equals(day)) {
-				String itemText = item.getElementsByTag("description").get(0).text();
+				String itemText = Parser.unescapeEntities(item.getElementsByTag("description").get(0).text(), false);
 				return formatAsMealsData(itemText, itemsData);
 			}
 		}
+		
+		System.err.println("no items matched");
 		return null;
 	}
 
