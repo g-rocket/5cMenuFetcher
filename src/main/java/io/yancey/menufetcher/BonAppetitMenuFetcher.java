@@ -174,6 +174,7 @@ public class BonAppetitMenuFetcher extends AbstractMenuFetcher {
 	private String guessItemId(String itemName, JsonObject itemsData) {
 		itemName = itemName.trim();
 		if(itemName.endsWith("&nbsp;")) itemName = itemName.substring(0, itemName.length() - 6);
+		if(itemName.endsWith("\u00a0")) itemName = itemName.substring(0, itemName.length() - 1);
 		for(Map.Entry<String, JsonElement> itemData: itemsData.entrySet()) {
 			if(itemData.getValue().getAsJsonObject().get("label").getAsString().equalsIgnoreCase(itemName)) {
 				return itemData.getKey();
