@@ -232,6 +232,7 @@ public class PomonaMenuFetcher extends AbstractMenuFetcher {
 					if(name.equals("Continental Breakfast")) {
 						// work around frary bug on weekends
 						times.put("Breakfast Bar", new LocalTimeRange(startTime, endTime));
+						times.put("Breakfast", new LocalTimeRange(startTime, endTime));
 					}
 				}
 				return times;
