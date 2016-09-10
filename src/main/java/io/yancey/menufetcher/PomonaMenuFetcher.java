@@ -316,7 +316,7 @@ public class PomonaMenuFetcher extends AbstractMenuFetcher {
 		LocalTimeRange hours = hoursTable.get(name);
 		String description = spreadsheet[startRow + 1][column];
 		List<Station> stations = new ArrayList<>();
-		for(int station = 0; !spreadsheet[startRow + station + 2][1].isEmpty(); station++) {
+		for(int station = 0; !spreadsheet[startRow + station + 2][1].isEmpty() && !spreadsheet[startRow + station + 2][0].equals("Day"); station++) {
 			if(!spreadsheet[startRow + station + 2][column].isEmpty()) {
 				stations.add(frankFraryCreateStation(spreadsheet, startRow + station + 2, column));
 			}
