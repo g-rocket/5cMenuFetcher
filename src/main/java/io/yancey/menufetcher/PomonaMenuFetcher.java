@@ -229,6 +229,10 @@ public class PomonaMenuFetcher extends AbstractMenuFetcher {
 							Integer.parseInt(m.group(5))%12 + (m.group(7).equals("p")? 12: 0),
 							Integer.parseInt(m.group(6)));
 					times.put(name, new LocalTimeRange(startTime, endTime));
+					if(name.equals("Continental Breakfast")) {
+						// work around frary bug on weekends
+						times.put("Breakfast Bar", new LocalTimeRange(startTime, endTime));
+					}
 				}
 				return times;
 			}
@@ -359,8 +363,8 @@ public class PomonaMenuFetcher extends AbstractMenuFetcher {
 	}
 
 	public static void main(String[] args) throws MalformedMenuException, MenuNotAvailableException {
-		System.out.println(new PomonaMenuFetcher("Frank", "frank", FRANK_NAME).getMeals(LocalDate.of(2016,2,12)));
-		//System.out.println(new PomonaMenuFetcher("Frary", "frary", FRARY_NAME).getMeals(LocalDate.of(2016,2,15)));
+		//System.out.println(new PomonaMenuFetcher("Frank", "frank", FRANK_NAME).getMeals(LocalDate.of(2016,2,12)));
+		System.out.println(new PomonaMenuFetcher("Frary", "frary", FRARY_NAME).getMeals(LocalDate.of(2016,9,6)));
 		//System.out.println(new PomonaMenuFetcher("Oldenborg", "oldenborg", OLDENBORG_NAME).getMeals(LocalDate.of(2016,2,22)));
 	}
 }
