@@ -231,7 +231,6 @@ public class PomonaMenuFetcher extends AbstractMenuFetcher {
 					times.put(name, new LocalTimeRange(startTime, endTime));
 					if(name.equals("Continental Breakfast")) {
 						// work around frary bug on weekends
-						times.put("Breakfast Bar", new LocalTimeRange(startTime, endTime));
 						times.put("Breakfast", new LocalTimeRange(startTime, endTime));
 					}
 				}
@@ -292,7 +291,7 @@ public class PomonaMenuFetcher extends AbstractMenuFetcher {
 		List<Meal> meals = new ArrayList<>(3);
 		for(int column = 2; column < spreadsheet[startRow].length; column++) {
 			if(frankFraryMealExists(spreadsheet, startRow, column)) {
-				meals.add(frankFraryCreateMeal(spreadsheet, startRow, column, hoursTable));
+				meals.add(frankFraryCreateMeal(spreadsheet, startRow, column, hoursTable, dayOfWeek));
 			}
 		}
 		return meals;
@@ -304,12 +303,16 @@ public class PomonaMenuFetcher extends AbstractMenuFetcher {
 		for(int station = 0; !spreadsheet[startRow + station + 2][1].isEmpty(); station++) {
 			if(!spreadsheet[startRow + station + 2][column].isEmpty()) return true;
 		}
+		if(!spreadsheet[startRow + 1][column].isEmpty()) {
+			return true;
+		}
 		return false;
 	}
 	
-	private Meal frankFraryCreateMeal(String[][] spreadsheet, int startRow, int column, Map<String, LocalTimeRange> hoursTable) {
+	private Meal frankFraryCreateMeal(String[][] spreadsheet, int startRow, int column, Map<String, LocalTimeRange> hoursTable, DayOfWeek dayOfWeek) {
 		String name = spreadsheet[startRow][column].trim();
 		if(name.equals("Brakfast")) name = "Breakfast"; // fix someone else's typo
+		if(name.equals("Breakfast Bar")) name = "Breakfast"; // for consistency
 		LocalTimeRange hours = hoursTable.get(name);
 		String description = spreadsheet[startRow + 1][column];
 		List<Station> stations = new ArrayList<>();
@@ -318,7 +321,17 @@ public class PomonaMenuFetcher extends AbstractMenuFetcher {
 				stations.add(frankFraryCreateStation(spreadsheet, startRow + station + 2, column));
 			}
 		}
+		if(!spreadsheet[startRow + 1][column].isEmpty() && stations.isEmpty()) {
+			stations.add(fraryCreateDefaultBrunchStation(spreadsheet, startRow + 1, column));
+		}
 		return new Meal(stations, hours.startTime, hours.endTime, name, description);
+	}
+
+	private Station fraryCreateDefaultBrunchStation(String[][] spreadsheet, int row, int column) {
+		return new Station("Brunch", 
+				Arrays.stream(spreadsheet[row][column].split(","))
+				.map(itemName -> new MenuItem(itemName.trim(), "", Collections.emptySet()))
+				.collect(Collectors.toList()));
 	}
 
 	private Station frankFraryCreateStation(String[][] spreadsheet, int row, int column) {
@@ -364,8 +377,8 @@ public class PomonaMenuFetcher extends AbstractMenuFetcher {
 	}
 
 	public static void main(String[] args) throws MalformedMenuException, MenuNotAvailableException {
-		//System.out.println(new PomonaMenuFetcher("Frank", "frank", FRANK_NAME).getMeals(LocalDate.of(2016,2,12)));
-		System.out.println(new PomonaMenuFetcher("Frary", "frary", FRARY_NAME).getMeals(LocalDate.of(2016,9,6)));
+		//System.out.println(new PomonaMenuFetcher("Frank", "frank", FRANK_NAME).getMeals(LocalDate.of(2016,9,6)));
+		System.out.println(new PomonaMenuFetcher("Frary", "frary", FRARY_NAME).getMeals(LocalDate.of(2016,9,11)));
 		//System.out.println(new PomonaMenuFetcher("Oldenborg", "oldenborg", OLDENBORG_NAME).getMeals(LocalDate.of(2016,2,22)));
 	}
 }
