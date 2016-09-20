@@ -1,5 +1,4 @@
 #API
---------------------
 
 There is a basic REST api for getting machine-parsable data about menus.
 Everything is accessed based on the date.
@@ -13,7 +12,11 @@ A 404 response means that the requested data is not available.
 This usually means that either there's no data for that day,
 or that there was an unexpected error fetching the data for that day.
 
-The general structure of the API is pretty hierarchical, going
+The API has a hierarchical structure, going
+
+```
+dining hall -> meal -> station -> items
+```
 
 ## API Nodes
 
