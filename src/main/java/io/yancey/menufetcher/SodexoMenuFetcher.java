@@ -11,8 +11,6 @@ import org.jsoup.*;
 import org.jsoup.nodes.*;
 import org.jsoup.select.*;
 
-import com.google.gson.JsonParser;
-
 public class SodexoMenuFetcher extends AbstractMenuFetcher {
 	public static final String HOCH_SITENAME = "hmc";
 	public static final int HOCH_TCM = 1300;
@@ -34,20 +32,65 @@ public class SodexoMenuFetcher extends AbstractMenuFetcher {
 	
 	private String getMenuUrl(LocalDate day) throws MenuNotAvailableException, MalformedMenuException {
 		String menuUrl = null;
+		Exception lastError = null;
+		
 		try {
 			menuUrl = getMenuUrlFromPortal(day);
-		} catch(MenuNotAvailableException e) {
-			if(DayOfWeek.MONDAY.adjustInto(day).equals(
-					DayOfWeek.MONDAY.adjustInto(LocalDate.now()))) {
-				menuUrl = getMenuUrlFromFrontpage(day);
-			}
-			if(menuUrl == null) throw e;
+			if(!isCorrectWeek(menuUrl, day)) menuUrl = null;
+		} catch(MenuNotAvailableException | MalformedMenuException e) {
+			lastError = e;
+			menuUrl = null;
 		}
+		
 		if(menuUrl == null && DayOfWeek.MONDAY.adjustInto(day).equals(
 				DayOfWeek.MONDAY.adjustInto(LocalDate.now()))) {
-			menuUrl = getMenuUrlFromFrontpage(day);
+			System.err.println("Attempting to fetch menu from frontpage");
+			try {
+				menuUrl = getMenuUrlFromFrontpage(day);
+				if(!isCorrectWeek(menuUrl, day)) menuUrl = null;
+			} catch(MenuNotAvailableException | MalformedMenuException e) {
+				if(lastError != null) lastError.printStackTrace();
+				lastError = e;
+				menuUrl = null;
+			}
 		}
+		
+		if(menuUrl == null) {
+			System.err.println("Attempting to bruteforce magic menu number for "+name);
+			try {
+				menuUrl = getMenuUrlBruteforce(day);
+				if(!isCorrectWeek(menuUrl, day)) menuUrl = null;
+			} catch(MenuNotAvailableException e) {
+				if(lastError != null) lastError.printStackTrace();
+				lastError = e;
+				menuUrl = null;
+			}
+		}
+		
+		if(menuUrl == null) {
+			if(lastError != null) {
+				throw new MenuNotAvailableException(name+": fetching menu failed", lastError);
+			}
+			throw new MenuNotAvailableException(name+": fetching menu failed for unknown reason");
+		}
+		
 		return menuUrl;
+	}
+	
+	private String getMenuUrlFromMenuId(int menuId) {
+		return "https://" + sitename + ".sodexomyway.com/images/WeeklyMenu_tcm" +
+				tcmId + "-" + menuId + ".htm";
+	}
+	
+	private String getMenuUrlBruteforce(LocalDate day) {
+		//TODO: actually try to find it
+		return null;
+	}
+
+	private boolean isCorrectWeek(String menuUrl, LocalDate day) throws MenuNotAvailableException {
+		Document menuPage = fetchMenuPage(menuUrl);
+		String thisWeekString = ((LocalDate)DayOfWeek.MONDAY.adjustInto(day)).format(DateTimeFormatter.ofPattern("EEEE MMMM d, yyyy", Locale.ENGLISH));
+		return menuPage.getElementsByClass("titlecell").text().contains(thisWeekString);
 	}
 	
 	private String getFrontpageUrl() {
@@ -133,13 +176,7 @@ public class SodexoMenuFetcher extends AbstractMenuFetcher {
 		return menuUrl + "#" + day.getDayOfWeek().toString().toLowerCase();
 	}
 	
-	@Override
-	public Menu getMeals(LocalDate day) throws MenuNotAvailableException, MalformedMenuException {
-		String menuUrl = getMenuUrl(day);
-		if(menuUrl == null) {
-			// no menu available for requested day
-			return new Menu(name, id, getPublicMenuUrl(menuUrl, day), Collections.emptyList());
-		}
+	public Document fetchMenuPage(String menuUrl) throws MenuNotAvailableException {
 		if(!pageCache.containsKey(menuUrl)) {
 			try(InputStream portalStream = new URL(menuUrl).openStream()) {
 				pageCache.put(menuUrl, Jsoup.parse(portalStream, "Windows-1252", menuUrl));
@@ -147,11 +184,21 @@ public class SodexoMenuFetcher extends AbstractMenuFetcher {
 				throw new MenuNotAvailableException("Error fetching menu",e);
 			}
 		}
-		Document menuPage = pageCache.get(menuUrl);
-		String thisWeekString = ((LocalDate)DayOfWeek.MONDAY.adjustInto(day)).format(DateTimeFormatter.ofPattern("EEEE MMMM d, yyyy", Locale.ENGLISH));
-		if(!menuPage.getElementsByClass("titlecell").text().contains(thisWeekString)) {
-			throw new MalformedMenuException("We fetched the menu for the wrong week");
+		return pageCache.get(menuUrl);
+	}
+	
+	@Override
+	public Menu getMeals(LocalDate day) throws MenuNotAvailableException, MalformedMenuException {
+		String menuUrl = getMenuUrl(day);
+		if(menuUrl == null) {
+			// no menu available for requested day
+			return new Menu(name, id, getPublicMenuUrl(menuUrl, day), Collections.emptyList());
 		}
+		Document menuPage = fetchMenuPage(menuUrl);
+		//String thisWeekString = ((LocalDate)DayOfWeek.MONDAY.adjustInto(day)).format(DateTimeFormatter.ofPattern("EEEE MMMM d, yyyy", Locale.ENGLISH));
+		//if(!menuPage.getElementsByClass("titlecell").text().contains(thisWeekString)) {
+		//	throw new MalformedMenuException("We fetched the menu for the wrong week");
+		//}
 		Element menu = getMenu(day, menuPage);
 		List<Meal> meals = new ArrayList<>(3);
 		for(String mealName: mealNames) {
@@ -209,6 +256,6 @@ public class SodexoMenuFetcher extends AbstractMenuFetcher {
 	}
 
 	public static void main(String[] args) throws MenuNotAvailableException, MalformedMenuException {
-		System.out.println(new SodexoMenuFetcher("The Hoch", "hoch", HOCH_SITENAME, HOCH_TCM).getMeals(LocalDate.of(2016, 03, 30)));
+		System.out.println(new SodexoMenuFetcher("The Hoch", "hoch", HOCH_SITENAME, HOCH_TCM).getMeals(LocalDate.of(2016, 9, 20)));
 	}
 }
