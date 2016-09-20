@@ -109,7 +109,7 @@ For example, a request to
 ```
 http://menu.yancey.io/api/v1/2016-09-16/hoch/lunch/all
 ```
-would return all of the stations and items for breakfast at the hoch that day, formatted as
+would return all of the stations and items for lunch at the hoch that day, formatted as
 
 ```
 [
