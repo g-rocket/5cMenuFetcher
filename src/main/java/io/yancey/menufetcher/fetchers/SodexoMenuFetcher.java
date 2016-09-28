@@ -57,7 +57,7 @@ public class SodexoMenuFetcher extends AbstractMenuFetcher {
 		}
 		
 		if(menuUrl == null) {
-			System.err.println("Attempting to bruteforce magic menu number for "+name);
+			System.err.println("Attempting to bruteforce magic menu number for "+id);
 			try {
 				menuUrl = getMenuUrlBruteforce(day);
 				if(!isCorrectWeek(menuUrl, day)) menuUrl = null;
@@ -70,9 +70,9 @@ public class SodexoMenuFetcher extends AbstractMenuFetcher {
 		
 		if(menuUrl == null) {
 			if(lastError != null) {
-				throw new MenuNotAvailableException(name+": fetching menu failed", lastError);
+				throw new MenuNotAvailableException(id+": fetching menu failed", lastError);
 			}
-			throw new MenuNotAvailableException(name+": fetching menu failed for unknown reason");
+			throw new MenuNotAvailableException(id+": menu is not available yet");
 		}
 		
 		return menuUrl;
@@ -84,11 +84,21 @@ public class SodexoMenuFetcher extends AbstractMenuFetcher {
 	}
 	
 	private String getMenuUrlBruteforce(LocalDate day) {
-		//TODO: actually try to find it
+		int[] menuIds = {109893,110702,121814,121817,121818,121819};
+		for(int mId: menuIds) {
+			String urlForId = getMenuUrlFromMenuId(mId);
+			try {
+				if(isCorrectWeek(urlForId, day)) return urlForId;
+			} catch (MenuNotAvailableException e) {
+				System.err.println("error fetching "+mId+" for "+id+":");
+				e.printStackTrace();
+			}
+		}
 		return null;
 	}
 
 	private boolean isCorrectWeek(String menuUrl, LocalDate day) throws MenuNotAvailableException {
+		if(menuUrl == null) return false;
 		Document menuPage = fetchMenuPage(menuUrl);
 		String thisWeekString = ((LocalDate)DayOfWeek.MONDAY.adjustInto(day)).format(DateTimeFormatter.ofPattern("EEEE MMMM d, yyyy", Locale.ENGLISH));
 		return menuPage.getElementsByClass("titlecell").text().contains(thisWeekString);
@@ -190,6 +200,10 @@ public class SodexoMenuFetcher extends AbstractMenuFetcher {
 	
 	@Override
 	public Menu getMeals(LocalDate day) throws MenuNotAvailableException, MalformedMenuException {
+		if(smgName != null) {
+			
+		}
+		
 		String menuUrl = getMenuUrl(day);
 		if(menuUrl == null) {
 			// no menu available for requested day
