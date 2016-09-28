@@ -1,4 +1,8 @@
-package io.yancey.menufetcher;
+package io.yancey.menufetcher.fetchers;
+
+import io.yancey.menufetcher.*;
+import io.yancey.menufetcher.data.*;
+import io.yancey.menufetcher.fetchers.dininghalls.*;
 
 import java.io.*;
 import java.net.*;
@@ -12,12 +16,6 @@ import org.jsoup.nodes.*;
 import org.jsoup.select.*;
 
 public class SodexoMenuFetcher extends AbstractMenuFetcher {
-	public static final String HOCH_SITENAME = "hmc";
-	public static final int HOCH_TCM = 1300;
-	public static final String HOCH_SMG = "harvey%20mudd%20college%20-%20resident%20dining";
-	public static final String SCRIPPS_SITENAME = "scrippsdining";
-	public static final int SCRIPPS_TCM = 1567;
-	
 	private static final List<String> mealNames = Arrays.asList("brk", "lun", "din");
 	
 	private final String sitename;
@@ -259,6 +257,6 @@ public class SodexoMenuFetcher extends AbstractMenuFetcher {
 	}
 
 	public static void main(String[] args) throws MenuNotAvailableException, MalformedMenuException {
-		System.out.println(new SodexoMenuFetcher("The Hoch", "hoch", HOCH_SITENAME, HOCH_TCM, HOCH_SMG).getMeals(LocalDate.of(2016, 9, 26)));
+		System.out.println(new HochMenuFetcher().getMeals(LocalDate.of(2016, 9, 26)));
 	}
 }

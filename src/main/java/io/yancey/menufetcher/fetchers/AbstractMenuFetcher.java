@@ -1,4 +1,4 @@
-package io.yancey.menufetcher;
+package io.yancey.menufetcher.fetchers;
 
 public abstract class AbstractMenuFetcher implements MenuFetcher {
 	protected final String name;

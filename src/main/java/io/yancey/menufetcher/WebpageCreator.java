@@ -1,5 +1,8 @@
 package io.yancey.menufetcher;
 
+import io.yancey.menufetcher.data.*;
+import io.yancey.menufetcher.fetchers.*;
+
 import java.io.*;
 import java.time.*;
 import java.time.format.*;

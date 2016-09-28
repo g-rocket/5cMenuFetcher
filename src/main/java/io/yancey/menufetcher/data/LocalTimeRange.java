@@ -1,4 +1,4 @@
-package io.yancey.menufetcher;
+package io.yancey.menufetcher.data;
 
 import java.time.*;
 

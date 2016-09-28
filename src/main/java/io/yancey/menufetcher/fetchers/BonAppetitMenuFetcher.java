@@ -1,4 +1,8 @@
-package io.yancey.menufetcher;
+package io.yancey.menufetcher.fetchers;
+
+import io.yancey.menufetcher.*;
+import io.yancey.menufetcher.data.*;
+import io.yancey.menufetcher.fetchers.dininghalls.*;
 
 import java.io.*;
 import java.net.*;
@@ -10,19 +14,13 @@ import java.util.stream.*;
 
 import org.jsoup.*;
 import org.jsoup.nodes.*;
-import org.jsoup.parser.Parser;
+import org.jsoup.parser.*;
 
 import com.google.gson.*;
 
 public class BonAppetitMenuFetcher extends AbstractMenuFetcher {
 	private final int cafeId;
 	private final String publicMenuUrlPrefix, publicMenuUrlCafe;
-	public static final int PITZER_ID = 219;
-	public static final int COLLINS_ID = 50;
-	public static final String PITZER_PUBLIC_MENU_URL_PREFIX = "pitzer";
-	public static final String PITZER_PUBLIC_MENU_URL_CAFE = "mcconnell-bistro";
-	public static final String COLLINS_PUBLIC_MENU_URL_PREFIX = "collins-cmc";
-	public static final String COLLINS_PUBLIC_MENU_URL_CAFE = "collins";
 	
 	public BonAppetitMenuFetcher(String name, String id, int cafeId,
 			String publicMenuUrlPrefix, String publicMenuUrlCafe) {
@@ -228,8 +226,7 @@ public class BonAppetitMenuFetcher extends AbstractMenuFetcher {
 	}
 
 	public static void main(String[] args) throws MenuNotAvailableException, MalformedMenuException {
-		System.out.println(new BonAppetitMenuFetcher("Pitzer", "pitzer", PITZER_ID,
-				PITZER_PUBLIC_MENU_URL_CAFE, PITZER_PUBLIC_MENU_URL_CAFE).getMeals(java.time.LocalDate.of(2016, 8, 28)));
+		System.out.println(new PitzerMenuFetcher().getMeals(java.time.LocalDate.of(2016, 8, 28)));
 	}
 	
 	private String getMenuUrl(LocalDate day) {

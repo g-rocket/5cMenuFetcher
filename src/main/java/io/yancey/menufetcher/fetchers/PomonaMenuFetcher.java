@@ -1,4 +1,8 @@
-package io.yancey.menufetcher;
+package io.yancey.menufetcher.fetchers;
+
+import io.yancey.menufetcher.*;
+import io.yancey.menufetcher.data.*;
+import io.yancey.menufetcher.fetchers.dininghalls.*;
 
 import java.io.*;
 import java.net.*;
@@ -16,10 +20,6 @@ import com.google.gson.*;
 public class PomonaMenuFetcher extends AbstractMenuFetcher {
 	private final String sitename;
 	private static final String urlPrefix = "http://www.pomona.edu/administration/dining/menus/";
-	
-	public static final String FRANK_NAME = "frank";
-	public static final String FRARY_NAME = "frary";
-	public static final String OLDENBORG_NAME = "oldenborg";
 
 	protected Map<String, Document> documentCache = new HashMap<>();
 	protected Map<String, JsonElement> jsonCache = new HashMap<>();
@@ -377,8 +377,8 @@ public class PomonaMenuFetcher extends AbstractMenuFetcher {
 	}
 
 	public static void main(String[] args) throws MalformedMenuException, MenuNotAvailableException {
-		//System.out.println(new PomonaMenuFetcher("Frank", "frank", FRANK_NAME).getMeals(LocalDate.of(2016,9,6)));
-		System.out.println(new PomonaMenuFetcher("Frary", "frary", FRARY_NAME).getMeals(LocalDate.of(2016,9,11)));
-		//System.out.println(new PomonaMenuFetcher("Oldenborg", "oldenborg", OLDENBORG_NAME).getMeals(LocalDate.of(2016,2,22)));
+		//System.out.println(new FrankMenuFetcher().getMeals(LocalDate.of(2016,9,6)));
+		System.out.println(new FraryMenuFetcher().getMeals(LocalDate.of(2016,9,11)));
+		//System.out.println(new OldenborgMenuFetcher().getMeals(LocalDate.of(2016,2,22)));
 	}
 }
