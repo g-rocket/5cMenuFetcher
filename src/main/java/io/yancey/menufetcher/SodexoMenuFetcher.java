@@ -14,6 +14,7 @@ import org.jsoup.select.*;
 public class SodexoMenuFetcher extends AbstractMenuFetcher {
 	public static final String HOCH_SITENAME = "hmc";
 	public static final int HOCH_TCM = 1300;
+	public static final String HOCH_SMG = "harvey%20mudd%20college%20-%20resident%20dining";
 	public static final String SCRIPPS_SITENAME = "scrippsdining";
 	public static final int SCRIPPS_TCM = 1567;
 	
@@ -21,13 +22,15 @@ public class SodexoMenuFetcher extends AbstractMenuFetcher {
 	
 	private final String sitename;
 	private final int tcmId;
+	private final String smgName;
 	
 	protected Map<String, Document> pageCache = new HashMap<>();
 	
-	public SodexoMenuFetcher(String name, String id, String sitename, int tcmId) {
+	public SodexoMenuFetcher(String name, String id, String sitename, int tcmId, String smgName) {
 		super(name, id);
 		this.sitename = sitename;
 		this.tcmId = tcmId;
+		this.smgName = smgName;
 	}
 	
 	private String getMenuUrl(LocalDate day) throws MenuNotAvailableException, MalformedMenuException {
@@ -256,6 +259,6 @@ public class SodexoMenuFetcher extends AbstractMenuFetcher {
 	}
 
 	public static void main(String[] args) throws MenuNotAvailableException, MalformedMenuException {
-		System.out.println(new SodexoMenuFetcher("The Hoch", "hoch", HOCH_SITENAME, HOCH_TCM).getMeals(LocalDate.of(2016, 9, 20)));
+		System.out.println(new SodexoMenuFetcher("The Hoch", "hoch", HOCH_SITENAME, HOCH_TCM, HOCH_SMG).getMeals(LocalDate.of(2016, 9, 26)));
 	}
 }
