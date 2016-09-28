@@ -11,6 +11,8 @@ import java.time.format.*;
 import java.util.*;
 import java.util.regex.*;
 
+import javax.script.*;
+
 import org.jsoup.*;
 import org.jsoup.nodes.*;
 import org.jsoup.select.*;
@@ -23,6 +25,7 @@ public class SodexoMenuFetcher extends AbstractMenuFetcher {
 	private final String smgName;
 	
 	protected Map<String, Document> pageCache = new HashMap<>();
+	protected Map<String, Object> smgCache = null;
 	
 	public SodexoMenuFetcher(String name, String id, String sitename, int tcmId, String smgName) {
 		super(name, id);
@@ -200,12 +203,23 @@ public class SodexoMenuFetcher extends AbstractMenuFetcher {
 	
 	@Override
 	public Menu getMeals(LocalDate day) throws MenuNotAvailableException, MalformedMenuException {
-		if(smgName != null) {
-			
-		}
-		
 		String menuUrl = getMenuUrl(day);
 		if(menuUrl == null) {
+			if(smgName != null) {
+				if(smgCache == null) fetchSmg();
+				
+				if(smgCache != null) {
+					try {
+						return getMenuFromSmg(day);
+					} catch (MenuNotAvailableException e) {
+						System.err.println("menu not available from smg: "+e);
+					} catch (MalformedMenuException e) {
+						System.err.println("error fetching menu for "+id+" from smg:");
+						e.printStackTrace();
+					}
+				}
+			}
+			
 			// no menu available for requested day
 			return new Menu(name, id, getPublicMenuUrl(menuUrl, day), Collections.emptyList());
 		}
@@ -225,6 +239,97 @@ public class SodexoMenuFetcher extends AbstractMenuFetcher {
 		return new Menu(name, id, getPublicMenuUrl(menuUrl, day), meals);
 	}
 	
+	@SuppressWarnings("unchecked")
+	private Menu getMenuFromSmg(LocalDate day) throws MenuNotAvailableException, MalformedMenuException {
+		Map<String, Map<String, Object>> menuData = (Map<String, Map<String, Object>>) smgCache.get("menu");
+		Map<String, Map<String, String>> itemData = (Map<String, Map<String, String>>) smgCache.get("items");
+		
+		for(Map<String, Object> week: menuData.values()) {
+			LocalDate startDate = LocalDate.parse((String)week.get("startDate"));
+			LocalDate endDate = LocalDate.parse((String)week.get("endDate"));
+			
+			if(day.isBefore(startDate) || day.isAfter(endDate)) continue;
+			
+			Map<String, Map<String, Object>> mealsData = 
+					((Map<String, Map<String, Map<String, Map<String, Map<String, Map<String, Object>>>>>>) week.get("menus"))
+						.get("0").get("tabs").get(startDate.until(day).getDays()).get("groups");
+
+			List<Meal> meals = new ArrayList<>(3);
+			for(Map<String, Object> mealData: mealsData.values()) {
+				String mealName = (String) mealData.get("title");
+				if(mealName == "Lunch" &&
+						day.getDayOfWeek().equals(DayOfWeek.SATURDAY) || 
+						day.getDayOfWeek().equals(DayOfWeek.SUNDAY)) {
+					mealName = "Brunch";
+				}
+				Map<String, Map<String, Object>> stationsData = 
+						(Map<String, Map<String, Object>>) mealData.get("category");
+				List<Station> stations = new ArrayList<>();
+				for(Map<String, Object> stationData: stationsData.values()) {
+					String stationName = (String) stationData.get("title");
+					Map<String, String> itemIds = (Map<String, String>) stationData.get("products");
+					List<MenuItem> items = new ArrayList<>();
+					for(String itemId: itemIds.values()) {
+						items.add(new MenuItem(
+								itemData.get(itemId).get("22"), 
+								itemData.get(itemId).get("23"), 
+								new HashSet<String>(Arrays.asList(
+										itemData.get(itemId).get("30").split("\\s+")))));
+					}
+					stations.add(new Station(stationName, items));
+				}
+				meals.add(new Meal(stations, null, null, mealName, ""));
+			}
+			
+			return new Menu(name, id, getPublicSmgUrl(), meals);
+		}
+		
+		throw new MenuNotAvailableException("No menu in smg for "+day);
+	}
+
+	private void fetchSmg() {
+		String smgUrl = getSmgUrl();
+		String smgContents;
+	    HttpURLConnection connection;
+		try {
+			connection = (HttpURLConnection) new URL(smgUrl).openConnection();
+		} catch (IOException e) {
+			System.err.println("Error fetching smg for "+id+":");
+			e.printStackTrace();
+			return;
+		}
+	    connection.setInstanceFollowRedirects(true);
+		try(Scanner sc = new Scanner(new BufferedInputStream(connection.getInputStream()), "UTF-8")) {
+			smgContents = sc.useDelimiter("\\A").next();
+		} catch (IOException e) {
+			System.err.println("Error fetching smg for "+id+":");
+			e.printStackTrace();
+			return;
+		}
+		try {
+			smgCache = parseSmgJavascript(smgContents);
+		} catch (ScriptException e) {
+			System.err.println("Error evaluating javascript for "+id+"'s smg:");
+			e.printStackTrace();
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private static Map<String, Object> parseSmgJavascript(String smgContents) throws ScriptException {
+        ScriptEngineManager factory = new ScriptEngineManager();
+        ScriptEngine nashorn = factory.getEngineByName("nashorn");
+        return (Map<String, Object>) nashorn.eval(
+        		smgContents + "; var retData = {menu: menuData, items: aData}; retData");
+	}
+
+	private String getSmgUrl() {
+		return "https://" + sitename + ".sodexomyway.com/smgmenu/json/" + smgName + "?forcedesktop=true";
+	}
+
+	private String getPublicSmgUrl() {
+		return "https://" + sitename + ".sodexomyway.com/smgmenu/display/" + smgName + "?forcedesktop=true";
+	}
+
 	private Meal createMeal(Elements mealItems, boolean isWeekend) {
 		String name = mealItems.remove(0).getElementsByClass("mealname").first().ownText();
 		name = name.substring(0, 1) + name.substring(1).toLowerCase();
@@ -271,6 +376,6 @@ public class SodexoMenuFetcher extends AbstractMenuFetcher {
 	}
 
 	public static void main(String[] args) throws MenuNotAvailableException, MalformedMenuException {
-		System.out.println(new HochMenuFetcher().getMeals(LocalDate.of(2016, 9, 26)));
+		System.out.println(new HochMenuFetcher().getMeals(LocalDate.of(2016, 9, 27)));
 	}
 }
