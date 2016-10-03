@@ -7,6 +7,12 @@
 					"not-contains": "Salad"
 				},
 				"number": 1
+			},
+			"Deli": {
+				"include-if": {
+					"not-contains": "Deli"
+				},
+				"number": 1
 			}
 		},
 		"Dinner": {
@@ -17,7 +23,13 @@
 				"number": 1
 			},
 			"Exhibition": 1,
-			"Creations": 1
+			"Creations": 1,
+			"Deli": {
+				"include-if": {
+					"not-contains": "Deli"
+				},
+				"number": 1
+			}
 		}
 	},
 	"pitzer": {
