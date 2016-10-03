@@ -223,6 +223,9 @@ public class SodexoMenuFetcher extends AbstractMenuFetcher {
 					} catch (MalformedMenuException e) {
 						System.err.println("error fetching menu for "+id+" from smg:");
 						e.printStackTrace();
+					} catch (Exception e) {
+						System.err.println("Serious error fetching smg");
+						e.printStackTrace();
 					}
 				}
 			}
