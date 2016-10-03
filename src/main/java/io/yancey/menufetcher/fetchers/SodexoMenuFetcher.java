@@ -203,7 +203,14 @@ public class SodexoMenuFetcher extends AbstractMenuFetcher {
 	
 	@Override
 	public Menu getMeals(LocalDate day) throws MenuNotAvailableException, MalformedMenuException {
-		String menuUrl = getMenuUrl(day);
+		String menuUrl = null;
+		try {
+			menuUrl = getMenuUrl(day);
+		} catch(MalformedMenuException e) {
+			e.printStackTrace();
+		} catch(MenuNotAvailableException e) {
+			// expected; try to use smg
+		}
 		if(menuUrl == null) {
 			if(smgName != null) {
 				if(smgCache == null) fetchSmg();
@@ -252,7 +259,7 @@ public class SodexoMenuFetcher extends AbstractMenuFetcher {
 			
 			Map<String, Map<String, Object>> mealsData = 
 					((Map<String, Map<String, Map<String, Map<String, Map<String, Map<String, Object>>>>>>) week.get("menus"))
-						.get("0").get("tabs").get(startDate.until(day).getDays()).get("groups");
+						.get("0").get("tabs").get(Integer.toString(startDate.until(day).getDays())).get("groups");
 
 			List<Meal> meals = new ArrayList<>(3);
 			for(Map<String, Object> mealData: mealsData.values()) {
@@ -376,6 +383,6 @@ public class SodexoMenuFetcher extends AbstractMenuFetcher {
 	}
 
 	public static void main(String[] args) throws MenuNotAvailableException, MalformedMenuException {
-		System.out.println(new HochMenuFetcher().getMeals(LocalDate.of(2016, 9, 27)));
+		System.out.println(new HochMenuFetcher().getMeals(LocalDate.of(2016, 10, 3)));
 	}
 }
