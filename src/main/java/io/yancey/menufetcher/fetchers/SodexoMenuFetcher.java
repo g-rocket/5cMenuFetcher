@@ -205,6 +205,24 @@ public class SodexoMenuFetcher extends AbstractMenuFetcher {
 	
 	@Override
 	public Menu getMeals(LocalDate day) throws MenuNotAvailableException, MalformedMenuException {
+		if(smgName != null) {
+			if(smgCache == null) fetchSmg();
+			
+			if(smgCache != null) {
+				try {
+					return getMenuFromSmg(day);
+				} catch (MenuNotAvailableException e) {
+					System.err.println("menu not available from smg: "+e);
+				} catch (MalformedMenuException e) {
+					System.err.println("error fetching menu for "+id+" from smg:");
+					e.printStackTrace();
+				} catch (Exception e) {
+					System.err.println("Serious error fetching smg");
+					e.printStackTrace();
+				}
+			}
+		}
+		
 		String menuUrl = null;
 		try {
 			menuUrl = getMenuUrl(day);
@@ -214,24 +232,6 @@ public class SodexoMenuFetcher extends AbstractMenuFetcher {
 			// expected; try to use smg
 		}
 		if(menuUrl == null) {
-			if(smgName != null) {
-				if(smgCache == null) fetchSmg();
-				
-				if(smgCache != null) {
-					try {
-						return getMenuFromSmg(day);
-					} catch (MenuNotAvailableException e) {
-						System.err.println("menu not available from smg: "+e);
-					} catch (MalformedMenuException e) {
-						System.err.println("error fetching menu for "+id+" from smg:");
-						e.printStackTrace();
-					} catch (Exception e) {
-						System.err.println("Serious error fetching smg");
-						e.printStackTrace();
-					}
-				}
-			}
-			
 			// no menu available for requested day
 			return new Menu(name, id, getPublicMenuUrl(menuUrl, day), Collections.emptyList());
 		}
@@ -328,7 +328,6 @@ public class SodexoMenuFetcher extends AbstractMenuFetcher {
 			System.err.println("Error evaluating javascript for "+id+"'s smg:");
 			e.printStackTrace();
 		}
-		System.out.println(smgCache);
 	}
 
 	private static JsonElement parseSmgJavascript(String smgContents) throws ScriptException {
@@ -394,6 +393,6 @@ public class SodexoMenuFetcher extends AbstractMenuFetcher {
 	}
 
 	public static void main(String[] args) throws MenuNotAvailableException, MalformedMenuException {
-		System.out.println(new HochMenuFetcher().getMeals(LocalDate.of(2016, 10, 3)));
+		System.out.println(new HochMenuFetcher().getMeals(LocalDate.of(2016, 10, 5)));
 	}
 }
