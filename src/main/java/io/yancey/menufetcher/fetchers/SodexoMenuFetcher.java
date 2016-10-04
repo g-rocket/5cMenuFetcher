@@ -17,6 +17,8 @@ import org.jsoup.*;
 import org.jsoup.nodes.*;
 import org.jsoup.select.*;
 
+import com.google.gson.*;
+
 public class SodexoMenuFetcher extends AbstractMenuFetcher {
 	private static final List<String> mealNames = Arrays.asList("brk", "lun", "din");
 	
@@ -25,7 +27,7 @@ public class SodexoMenuFetcher extends AbstractMenuFetcher {
 	private final String smgName;
 	
 	protected Map<String, Document> pageCache = new HashMap<>();
-	protected Map<String, Object> smgCache = null;
+	protected JsonObject smgCache = null;
 	
 	public SodexoMenuFetcher(String name, String id, String sitename, int tcmId, String smgName) {
 		super(name, id);
@@ -249,42 +251,46 @@ public class SodexoMenuFetcher extends AbstractMenuFetcher {
 		return new Menu(name, id, getPublicMenuUrl(menuUrl, day), meals);
 	}
 	
-	@SuppressWarnings("unchecked")
 	private Menu getMenuFromSmg(LocalDate day) throws MenuNotAvailableException, MalformedMenuException {
-		Map<String, Map<String, Object>> menuData = (Map<String, Map<String, Object>>) smgCache.get("menu");
-		Map<String, Map<String, String>> itemData = (Map<String, Map<String, String>>) smgCache.get("items");
+		JsonArray menuData = smgCache.getAsJsonArray("menu");
+		JsonObject itemData = smgCache.getAsJsonObject("items");
 		
-		for(Map<String, Object> week: menuData.values()) {
-			LocalDate startDate = LocalDate.parse((String)week.get("startDate"));
-			LocalDate endDate = LocalDate.parse((String)week.get("endDate"));
+		for(JsonElement week: menuData) {
+			LocalDate startDate = LocalDate.parse(week.getAsJsonObject().get("startDate").getAsString());
+			LocalDate endDate = LocalDate.parse(week.getAsJsonObject().get("endDate").getAsString());
 			
 			if(day.isBefore(startDate) || day.isAfter(endDate)) continue;
 			
-			Map<String, Map<String, Object>> mealsData = 
-					((Map<String, Map<String, Map<String, Map<String, Map<String, Map<String, Object>>>>>>) week.get("menus"))
-						.get("0").get("tabs").get(Integer.toString(startDate.until(day).getDays())).get("groups");
+			JsonArray mealsData = week.getAsJsonObject().getAsJsonArray("menus").get(0).getAsJsonObject()
+					.getAsJsonArray("tabs").get(startDate.until(day).getDays()).getAsJsonObject().getAsJsonArray("groups");
 
 			List<Meal> meals = new ArrayList<>(3);
-			for(Map<String, Object> mealData: mealsData.values()) {
-				String mealName = (String) mealData.get("title");
-				if(mealName == "Lunch" &&
+			for(JsonElement mealData: mealsData) {
+				String mealName = mealData.getAsJsonObject().get("title").getAsString();
+				if(mealName.equals("Lunch") &&
 						day.getDayOfWeek().equals(DayOfWeek.SATURDAY) || 
 						day.getDayOfWeek().equals(DayOfWeek.SUNDAY)) {
 					mealName = "Brunch";
 				}
-				Map<String, Map<String, Object>> stationsData = 
-						(Map<String, Map<String, Object>>) mealData.get("category");
+				JsonArray stationsData = mealData.getAsJsonObject().getAsJsonArray("category");
 				List<Station> stations = new ArrayList<>();
-				for(Map<String, Object> stationData: stationsData.values()) {
-					String stationName = (String) stationData.get("title");
-					Map<String, String> itemIds = (Map<String, String>) stationData.get("products");
+				for(JsonElement stationData: stationsData) {
+					String stationName = stationData.getAsJsonObject().get("title").getAsString();
+					if(stationName.equals("Deli")) stationName = "Exhibition";
+					if(stationName.startsWith("Grill-")) stationName = "Grill";
+					JsonArray itemIds = stationData.getAsJsonObject().getAsJsonArray("products");
 					List<MenuItem> items = new ArrayList<>();
-					for(String itemId: itemIds.values()) {
-						items.add(new MenuItem(
-								itemData.get(itemId).get("22"), 
-								itemData.get(itemId).get("23"), 
-								new HashSet<String>(Arrays.asList(
-										itemData.get(itemId).get("30").split("\\s+")))));
+					for(JsonElement itemId: itemIds) {
+						String itemName = itemData.getAsJsonArray(itemId.getAsString()).get(22).getAsString();
+						String itemDescription = itemData.getAsJsonArray(itemId.getAsString()).get(23).getAsString();
+						Set<String> itemTags = new HashSet<>(Arrays.asList(
+								itemData.getAsJsonArray(itemId.getAsString()).get(30).getAsString().split("\\s+")));
+						if(stationName.equals("Exhibition") && itemName.equals("Made to Order Deli Bar")) {
+							stations.add(new Station("Deli", 
+									Arrays.asList(new MenuItem(itemName, itemDescription, itemTags))));
+							continue;
+						}
+						items.add(new MenuItem(itemName, itemDescription, itemTags));
 					}
 					stations.add(new Station(stationName, items));
 				}
@@ -317,19 +323,21 @@ public class SodexoMenuFetcher extends AbstractMenuFetcher {
 			return;
 		}
 		try {
-			smgCache = parseSmgJavascript(smgContents);
+			smgCache = parseSmgJavascript(smgContents).getAsJsonObject();
 		} catch (ScriptException e) {
 			System.err.println("Error evaluating javascript for "+id+"'s smg:");
 			e.printStackTrace();
 		}
+		System.out.println(smgCache);
 	}
 
-	@SuppressWarnings("unchecked")
-	private static Map<String, Object> parseSmgJavascript(String smgContents) throws ScriptException {
+	private static JsonElement parseSmgJavascript(String smgContents) throws ScriptException {
         ScriptEngineManager factory = new ScriptEngineManager();
         ScriptEngine nashorn = factory.getEngineByName("nashorn");
-        return (Map<String, Object>) nashorn.eval(
-        		smgContents + "; var retData = {menu: menuData, items: aData}; retData");
+        String smgJson = (String) nashorn.eval(
+        		smgContents + "; var retData = {menu: menuData, items: aData}; JSON.stringify(retData)");
+        
+        return new JsonParser().parse(smgJson);
 	}
 
 	private String getSmgUrl() {
