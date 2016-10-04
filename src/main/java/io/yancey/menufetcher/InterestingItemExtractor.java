@@ -51,7 +51,7 @@ public class InterestingItemExtractor {
 				List<MenuItem> newMenuItems = new ArrayList<>();
 				int howManyItems = rule.getAsInt();
 				if(howManyItems > 0) {
-					for(int i = 0; i < howManyItems; i++) {
+					for(int i = 0; i < howManyItems && i < baseStation.menu.size(); i++) {
 						newMenuItems.add(baseStation.menu.get(i));
 					}
 				} else {
