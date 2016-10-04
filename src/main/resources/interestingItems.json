@@ -23,7 +23,8 @@
 	"pitzer": {
 		"Lunch": {
 			"Ovens": 1,
-			"Chef's Table": 1
+			"Chef's Table": 1,
+			"Options": "all"
 		},
 		"Dinner": {
 			"Options": 1,
