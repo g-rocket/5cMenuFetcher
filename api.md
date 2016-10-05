@@ -60,12 +60,14 @@ Returns an array of meal descriptions,
 		"name": a user-friendly name for the meal,
 		"description": any special description the meal might have
 		               (can be blank),
-		"startTime": the meal's start time, formatted hh:mm:ss aa,
-		"endTime": the meal's end time, formatted hh:mm:ss aa,
+		"startTime": the meal's start time, formatted hh:mm (24-hour time),
+		"endTime": the meal's end time, formatted hh:mm (24-hour time)
 	},
 	...
 ]
 ```
+
+The `startTime` and `endTime` may be omitted if they are not available.
 
 ### Stations
 
