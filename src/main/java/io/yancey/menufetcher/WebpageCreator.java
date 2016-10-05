@@ -11,7 +11,7 @@ import java.util.*;
 import org.jsoup.*;
 import org.jsoup.nodes.*;
 
-import com.google.common.io.Files;
+import com.google.common.io.*;
 
 public class WebpageCreator {
 	
@@ -198,12 +198,16 @@ public class WebpageCreator {
 		}
 	}
 
-	private static void createAndSaveWebpage(String folder, LocalDate day, Collection<MenuFetcher> menuFetchers) {
+	public static void createAndSaveWebpage(String folder, LocalDate day, Collection<MenuFetcher> menuFetchers) {
 		createAndSaveWebpage(folder, day, MenuFetcher.fetchAllMenus((List<MenuFetcher>) menuFetchers, day));
 	}
 
-	private static void createAndSaveWebpage(String folder, LocalDate day) {
+	public static void createAndSaveWebpage(String folder, LocalDate day) {
 		createAndSaveWebpage(folder, day, MenuFetcher.getAllMenuFetchers());
+	}
+	
+	public static void createIndex(String folder, LocalDate day) throws IOException {
+		Files.copy(new File(folder, day.toString() + ".html"), new File(folder, "index.html"));
 	}
 	
 	public static void main(String[] args) {
