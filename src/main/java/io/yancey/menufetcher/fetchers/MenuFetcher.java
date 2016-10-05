@@ -25,4 +25,29 @@ public interface MenuFetcher {
 		menuFetchers.add(new CollinsMenuFetcher());
 		return Collections.unmodifiableList(menuFetchers);
 	}
+	
+	
+	public static List<Menu> fetchAllMenus(List<MenuFetcher> menuFetchers, LocalDate day) {
+		List<Menu> menus = new ArrayList<>();
+		for(MenuFetcher menuFetcher: menuFetchers) {
+			try {
+				menus.add(menuFetcher.getMeals(day));
+				System.out.print(".");
+			} catch(MenuNotAvailableException e) {
+				System.err.println("Error fetching "+menuFetcher.getId()+
+						" for "+day+": menu not found");
+				e.printStackTrace();
+			} catch(MalformedMenuException e) {
+				System.err.println("Error fetching "+menuFetcher.getId()+
+						" for "+day+": invalid data recieved");
+				e.printStackTrace();
+			} catch(Throwable t) {
+				System.err.println("Invalid exception recieved fetching "+
+						menuFetcher.getId()+" for "+day+": "+t);
+				throw t;
+			}
+		}
+		System.out.println();
+		return menus;
+	}
 }

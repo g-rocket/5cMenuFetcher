@@ -15,7 +15,7 @@ import com.google.common.io.Files;
 
 public class WebpageCreator {
 	
-	public static Document createWebpage(LocalDate day) {
+	public static Document createWebpage(LocalDate day, List<Menu> menus) {
 		Document template;
 		try(InputStream templateFile = new Object().getClass().getResourceAsStream("/template.html")) {
 			template = Jsoup.parse(templateFile, "UTF-8", "");
@@ -23,31 +23,11 @@ public class WebpageCreator {
 			throw new RuntimeException("Template not found",e);
 		}
 		setupDayList(template, day);
-		addMenus(template, day);
+		addMenus(template, menus);
 		return template;
 	}
 	
-	private static void addMenus(Document template, LocalDate day) {
-		List<Menu> menus = new ArrayList<>();
-		for(MenuFetcher menuFetcher: MenuFetcher.getAllMenuFetchers()) {
-			try {
-				menus.add(menuFetcher.getMeals(day));
-				System.out.print(".");
-			} catch(MenuNotAvailableException e) {
-				System.err.println("Error fetching "+menuFetcher.getId()+
-						" for "+day+": menu not found");
-				e.printStackTrace();
-			} catch(MalformedMenuException e) {
-				System.err.println("Error fetching "+menuFetcher.getId()+
-						" for "+day+": invalid data recieved");
-				e.printStackTrace();
-			} catch(Throwable t) {
-				System.err.println("Invalid exception recieved fetching "+
-						menuFetcher.getId()+" for "+day+": "+t);
-				throw t;
-			}
-		}
-		System.out.println();
+	private static void addMenus(Document template, List<Menu> menus) {
 		//System.out.println(menus);
 		addMenuSummary(template, menus);
 		addFullMenus(template, menus);
@@ -210,12 +190,20 @@ public class WebpageCreator {
 				((LocalDate)DayOfWeek.SUNDAY.adjustInto(day)).plusDays(1) + ".html");
 	}
 	
-	public static void createAndSaveWebpage(String folder, LocalDate day) {
+	public static void createAndSaveWebpage(String folder, LocalDate day, List<Menu> menus) {
 		try(FileWriter w = new FileWriter(new File(folder, day.toString() + ".html"))) {
-			w.write(WebpageCreator.createWebpage(day).toString());
+			w.write(WebpageCreator.createWebpage(day, menus).toString());
 		} catch (IOException e) {
 			throw new RuntimeException("Error saving webpage",e);
 		}
+	}
+
+	private static void createAndSaveWebpage(String folder, LocalDate day, Collection<MenuFetcher> menuFetchers) {
+		createAndSaveWebpage(folder, day, MenuFetcher.fetchAllMenus((List<MenuFetcher>) menuFetchers, day));
+	}
+
+	private static void createAndSaveWebpage(String folder, LocalDate day) {
+		createAndSaveWebpage(folder, day, MenuFetcher.getAllMenuFetchers());
 	}
 	
 	public static void main(String[] args) {
@@ -224,9 +212,10 @@ public class WebpageCreator {
 			createAndSaveWebpage(".", LocalDate.now());
 			return;
 		case 1:
+			List<MenuFetcher> menuFetchers = MenuFetcher.getAllMenuFetchers();
 			for(LocalDate day = LocalDate.now(); day.isBefore(LocalDate.now().plusDays(7)); day = day.plusDays(1)) {
 				try {
-					createAndSaveWebpage(args[0], day);
+					createAndSaveWebpage(args[0], day, menuFetchers);
 				} catch(Throwable t) {
 					System.err.println("Failed to create webpage for day "+day);
 					t.printStackTrace();
