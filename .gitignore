@@ -3,6 +3,9 @@
 # but not any source html file (like the template html)
 !/src/**/*.html
 
+# ignore generated api
+/api
+
 
 #For Maven
 dependency-reduced-pom.xml
