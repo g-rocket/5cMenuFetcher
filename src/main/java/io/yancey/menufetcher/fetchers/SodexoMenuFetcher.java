@@ -292,7 +292,7 @@ public class SodexoMenuFetcher extends AbstractMenuFetcher {
 						}
 						items.add(new MenuItem(itemName, itemDescription, itemTags));
 					}
-					stations.add(new Station(stationName, items));
+					addStation(stations, stationName, items);
 				}
 				meals.add(new Meal(stations, null, null, mealName, ""));
 			}
@@ -301,6 +301,22 @@ public class SodexoMenuFetcher extends AbstractMenuFetcher {
 		}
 		
 		throw new MenuNotAvailableException("No menu in smg for "+day);
+	}
+
+	/*
+	 * Add a new station, or merge if there's already a station of the same name
+	 */
+	private static void addStation(List<Station> stations, String stationName, List<MenuItem> items) {
+		for(ListIterator<Station> iter = stations.listIterator(); iter.hasNext();) {
+			if(iter.next().name.equals(stationName)) {
+				items.addAll(iter.previous().menu);
+				iter.remove();
+				iter.add(new Station(stationName, items));
+				return;
+			}
+		}
+		
+		stations.add(new Station(stationName, items));
 	}
 
 	private void fetchSmg() {
