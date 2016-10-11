@@ -276,7 +276,7 @@ public class SodexoMenuFetcher extends AbstractMenuFetcher {
 				List<Station> stations = new ArrayList<>();
 				for(JsonElement stationData: stationsData) {
 					String stationName = stationData.getAsJsonObject().get("title").getAsString();
-					if(stationName.equals("Deli")) stationName = "Exhibition";
+					//if(stationName.equals("Deli")) stationName = "Exhibition";
 					if(stationName.startsWith("Grill-")) stationName = "Grill";
 					JsonArray itemIds = stationData.getAsJsonObject().getAsJsonArray("products");
 					List<MenuItem> items = new ArrayList<>();

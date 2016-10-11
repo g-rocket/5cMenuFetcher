@@ -1,7 +1,7 @@
 {
 	"hoch": {
 		"Lunch": {
-			"Exhibition": 1,
+			"Exhibition": -1,
 			"Creations": {
 				"include-if": {
 					"not-contains": "Salad"
@@ -17,7 +17,13 @@
 				"number": 1
 			},
 			"Exhibition": 1,
-			"Creations": 1
+			"Creations": 1,
+			"Entrée": {
+				"include-if": {
+					"contains": "Steak"
+				},
+				"number": 1
+			}
 		}
 	},
 	"pitzer": {
