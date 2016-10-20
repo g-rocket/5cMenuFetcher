@@ -205,8 +205,18 @@ public class BonAppetitMenuFetcher extends AbstractMenuFetcher {
 
 	private Station createStation(JsonObject stationData, JsonObject itemsData) {
 		List<MenuItem> items = new ArrayList<>();
+		boolean hasItems = false;
 		for(JsonElement itemId: stationData.getAsJsonArray("items")) {
-			items.add(createMenuItem(itemsData.getAsJsonObject(itemId.getAsString())));
+			hasItems = true;
+			JsonObject itemData = itemsData.getAsJsonObject(itemId.getAsString());
+			if(itemData.has("special") && itemData.get("special").getAsInt() == 0) {
+				continue;
+			}
+			items.add(createMenuItem(itemData));
+		}
+		if(hasItems && items.isEmpty()) {
+			items.add(new MenuItem(stationData.get("label").getAsString(), 
+					"", Collections.emptySet()));
 		}
 		return new Station(stationData.get("label").getAsString(), items);
 	}
