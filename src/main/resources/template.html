@@ -7,24 +7,21 @@
       @font-face {
         font-family: 'TeX Gyre Heros';
         font-weight: normal;
-        src: url('http://images.clonecomputers.net/fonts/texgyreheros-regular.otf') format('otf');
+        src: url('http://s3.yancey.io/fonts/texgyreheros-regular.otf') format('otf');
       }
       @font-face {
         font-family: 'TeX Gyre Heros';
         font-weight: bold;
-        src: url('http://images.clonecomputers.net/fonts/texgyreheros-bold.otf') format('otf');
+        src: url('http://s3.yancey.io/fonts/texgyreheros-bold.otf') format('otf');
       }
       
       body {
           background-color: #404040;
       }
       
-      h1 {
-          text-color: #fff;
-      }
-      
       #header {
           color: #fff;
+          text-align: center;
       }
       
       #header :not(.day-list-item) > a:link, #header :not(.day-list-item) > a:visited {
@@ -36,7 +33,7 @@
       }
       
       .day-list-item {
-          background-color: #222
+          background-color: #222;
       }
       
       .day-list-item.day-list-item-selected {
@@ -44,7 +41,8 @@
       }
       
       * {
-        font-family: 'TeX Gyre Heros';
+        font-family: 'TeX Gyre Heros', Helvetica, Arial, sans-serif;
+        max-height: 99999999px; /* disable chrome font autoscaling */
       }
       
       .day-list-item > a {
@@ -53,6 +51,8 @@
       
       .day-list {
         border-collapse: collapse;
+        margin-left:auto; 
+        margin-right:auto;
       }
       
       .day-list-item {
@@ -121,6 +121,26 @@
       
       .collins {
         background-color: #eecccc;
+      }
+            
+      .hoch > .menu-spacer {
+        background-color: #cccca3;
+      }
+           
+      .pitzer > .menu-spacer {
+        background-color: #ccb188;
+      }
+      
+      .frank > .menu-spacer, .frary > .menu-spacer, .oldenborg > .menu-spacer {
+        background-color: #a3becc;
+      }
+      
+      .scripps > .menu-spacer {
+        background-color: #a3bea3;
+      }
+      
+      .collins > .menu-spacer {
+        background-color: #bea3a3;
       }
       
       .menu:not(.colored){
