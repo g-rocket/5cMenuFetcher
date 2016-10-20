@@ -4,6 +4,7 @@ import io.yancey.menufetcher.data.*;
 import io.yancey.menufetcher.fetchers.*;
 
 import java.io.*;
+import java.nio.file.*;
 import java.time.*;
 import java.util.*;
 
@@ -55,8 +56,7 @@ public class Main {
 				.defaultsTo(LocalDate.now());
 		OptionSpec<Void> apiOpt = parser.acceptsAll(
 				Arrays.asList("api", "a"),
-				"Generate the api")
-				.requiredUnless(webOpt);
+				"Generate the api");
 		OptionSpec<Void> helpOpt = parser.acceptsAll(
 				Arrays.asList("help", "h", "?"),
 				"Get help")
@@ -83,6 +83,7 @@ public class Main {
 		
 		List<LocalDate> dates = getDates(args, dateListOpt, startDateOpt, endDateOpt, numDaysOpt);
 		String baseDir = args.valueOf(basedirOpt).getAbsolutePath();
+		if(args.has(basedirOpt)) Files.createDirectories(args.valueOf(basedirOpt).toPath());
 		
 		generateStuff(args, dates, baseDir, webOpt, indexOpt, apiOpt);
 	}
