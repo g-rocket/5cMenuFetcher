@@ -7,6 +7,6 @@ public class ScrippsMenuFetcher extends SodexoMenuFetcher {
 	public static final int SCRIPPS_TCM = 1567;
 	
 	public ScrippsMenuFetcher() {
-		super("Scripps", "scripps", SCRIPPS_SITENAME, SCRIPPS_TCM, null);
+		super("Malott", "scripps", SCRIPPS_SITENAME, SCRIPPS_TCM, null);
 	}
 }

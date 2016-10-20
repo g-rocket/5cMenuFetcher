@@ -8,6 +8,6 @@ public class PitzerMenuFetcher extends BonAppetitMenuFetcher {
 	public static final String PITZER_PUBLIC_MENU_URL_CAFE = "mcconnell-bistro";
 
 	public PitzerMenuFetcher() {
-		super("Pitzer", "pitzer", PITZER_ID, PITZER_PUBLIC_MENU_URL_PREFIX, PITZER_PUBLIC_MENU_URL_CAFE);
+		super("McConnell", "pitzer", PITZER_ID, PITZER_PUBLIC_MENU_URL_PREFIX, PITZER_PUBLIC_MENU_URL_CAFE);
 	}
 }
