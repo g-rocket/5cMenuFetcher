@@ -1,8 +1,9 @@
 package io.yancey.menufetcher.data;
 
+import java.io.*;
 import java.time.*;
 import java.util.*;
-import java.io.*;
+
 import com.google.gson.stream.*;
 
 public class Meal {
@@ -15,7 +16,7 @@ public class Meal {
 	public Meal(List<Station> stations, 
 			LocalTime startTime, LocalTime endTime,
 			String name, String description) {
-		this.stations = Collections.unmodifiableList(stations);
+		this.stations = stations;
 		this.startTime = startTime;
 		this.endTime = endTime;
 		this.name = name;

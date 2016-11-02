@@ -79,6 +79,22 @@ public class BonAppetitMenuFetcher extends AbstractMenuFetcher {
 		for(JsonElement mealData: mealsData) {
 			meals.add(createMeal(mealData.getAsJsonObject(), itemsData));
 		}
+		// remove unused stations
+		for(ListIterator<Meal> mli = meals.listIterator(); mli.hasNext();) {
+			stationLoop:
+			for(ListIterator<Station> sli = mli.next().stations.listIterator(); sli.hasNext();) {
+				Station station = sli.next();
+				if(!station.menu.isEmpty()) continue stationLoop;
+				for(ListIterator<Meal> mli2 = meals.listIterator(mli.nextIndex()); mli2.hasNext();) {
+					for(Station s2: mli2.next().stations) {
+						if(s2.name.equals(station.name) && !s2.menu.isEmpty()) {
+							continue stationLoop;
+						}
+					}
+				}
+				sli.remove();
+			}
+		}
 		return new Menu(name, id, getMenuUrl(day), meals);
 	}
 	
@@ -214,10 +230,10 @@ public class BonAppetitMenuFetcher extends AbstractMenuFetcher {
 			}
 			items.add(createMenuItem(itemData));
 		}
-		if(hasItems && items.isEmpty()) {
-			items.add(new MenuItem(stationData.get("label").getAsString(), 
-					"", Collections.emptySet()));
-		}
+		//if(hasItems && items.isEmpty()) {
+		//	items.add(new MenuItem(stationData.get("label").getAsString(), 
+		//			"", Collections.emptySet()));
+		//}
 		return new Station(stationData.get("label").getAsString(), items);
 	}
 
