@@ -1,7 +1,7 @@
 {
 	"hoch": {
 		"Lunch": {
-			"Exhibition": -1,
+			"Exhibition": "all",
 			"Creations": {
 				"include-if": {
 					"not-contains": "Salad"
