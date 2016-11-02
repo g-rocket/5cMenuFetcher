@@ -11,20 +11,47 @@ import java.util.*;
 import org.jsoup.*;
 import org.jsoup.nodes.*;
 
+import com.google.common.base.*;
 import com.google.common.io.*;
 
 public class WebpageCreator {
+	private static final String NOT_FOUND_PAGE_ID = 
+			"29b834b1c0e9c7c946c6dc1d7a49c2218be33fefb150e17f2e6bf8a7ee42fec7";
 	
+	public static Document createBlankpage(LocalDate day) {
+		Document template = loadTemplate();
+		setupDayList(template, day);
+		deleteTables(template);
+		addBlankPageFlair(template, day);
+		return template;
+	}
+	
+	private static void addBlankPageFlair(Document template, LocalDate day) {
+		Element notFound = template.getElementById("header").parent().appendElement("p");
+		notFound.text("The menu for "+day+" is not available yet.");
+		notFound.attr("id", "not-found");
+		// mark as not found page
+		notFound.addClass(NOT_FOUND_PAGE_ID);
+	}
+
+	private static void deleteTables(Document template) {
+		template.getElementById("menu-summary").remove();
+		template.getElementById("menu").remove();
+	}
+
 	public static Document createWebpage(LocalDate day, List<Menu> menus) {
-		Document template;
-		try(InputStream templateFile = new Object().getClass().getResourceAsStream("/template.html")) {
-			template = Jsoup.parse(templateFile, "UTF-8", "");
-		} catch (IOException e) {
-			throw new RuntimeException("Template not found",e);
-		}
+		Document template = loadTemplate();
 		setupDayList(template, day);
 		addMenus(template, menus);
 		return template;
+	}
+	
+	private static Document loadTemplate() {
+		try(InputStream templateFile = new Object().getClass().getResourceAsStream("/template.html")) {
+			return Jsoup.parse(templateFile, "UTF-8", "");
+		} catch (IOException e) {
+			throw new RuntimeException("Template not found",e);
+		}
 	}
 	
 	private static void addMenus(Document template, List<Menu> menus) {
@@ -190,6 +217,24 @@ public class WebpageCreator {
 				((LocalDate)DayOfWeek.SUNDAY.adjustInto(day)).plusDays(1) + ".html");
 	}
 	
+	public static void createAndSaveBlankpage(String folder, LocalDate day, 
+			boolean replaceBlank, boolean replaceAll) {
+		File fp = new File(folder, day.toString() + ".html");
+		if(fp.exists() && !replaceAll) {
+			if(!replaceBlank) return;
+			try {
+				if(!Files.toString(fp, Charsets.UTF_8).contains(NOT_FOUND_PAGE_ID)) return;
+			} catch (IOException e) {
+				return;
+			}
+		}
+		try(FileWriter w = new FileWriter(fp)) {
+			w.write(WebpageCreator.createBlankpage(day).toString());
+		} catch (IOException e) {
+			throw new RuntimeException("Error saving webpage",e);
+		}
+	}
+	
 	public static void createAndSaveWebpage(String folder, LocalDate day, List<Menu> menus) {
 		try(FileWriter w = new FileWriter(new File(folder, day.toString() + ".html"))) {
 			w.write(WebpageCreator.createWebpage(day, menus).toString());
@@ -198,12 +243,9 @@ public class WebpageCreator {
 		}
 	}
 
-	public static void createAndSaveWebpage(String folder, LocalDate day, Collection<MenuFetcher> menuFetchers) {
-		createAndSaveWebpage(folder, day, MenuFetcher.fetchAllMenus((List<MenuFetcher>) menuFetchers, day));
-	}
-
 	public static void createAndSaveWebpage(String folder, LocalDate day) {
-		createAndSaveWebpage(folder, day, MenuFetcher.getAllMenuFetchers());
+		createAndSaveWebpage(folder, day, 
+				MenuFetcher.fetchAllMenus(MenuFetcher.getAllMenuFetchers(), day));
 	}
 	
 	public static void createIndex(String folder, LocalDate day) throws IOException {
@@ -211,6 +253,8 @@ public class WebpageCreator {
 	}
 	
 	public static void main(String[] args) {
+		createAndSaveBlankpage(".", LocalDate.now(), true, true);
+		if(true) return;
 		switch(args.length) {
 		case 0:
 			createAndSaveWebpage(".", LocalDate.now());
@@ -219,14 +263,14 @@ public class WebpageCreator {
 			List<MenuFetcher> menuFetchers = MenuFetcher.getAllMenuFetchers();
 			for(LocalDate day = LocalDate.now(); day.isBefore(LocalDate.now().plusDays(7)); day = day.plusDays(1)) {
 				try {
-					createAndSaveWebpage(args[0], day, menuFetchers);
+					createAndSaveWebpage(args[0], day, MenuFetcher.fetchAllMenus(menuFetchers, day));
 				} catch(Throwable t) {
 					System.err.println("Failed to create webpage for day "+day);
 					t.printStackTrace();
 				}
 			}
 			try {
-				Files.copy(new File(args[0], LocalDate.now().toString() + ".html"), new File(args[0], "index.html"));
+				createIndex(args[0], LocalDate.now());
 			} catch (IOException e) {
 				System.err.println("Failed to create index");
 				e.printStackTrace();
