@@ -47,7 +47,7 @@ public class WebpageCreator {
 	}
 	
 	private static Document loadTemplate() {
-		try(InputStream templateFile = new Object().getClass().getResourceAsStream("/template.html")) {
+		try(InputStream templateFile = WebpageCreator.class.getResourceAsStream("/template.html")) {
 			return Jsoup.parse(templateFile, "UTF-8", "");
 		} catch (IOException e) {
 			throw new RuntimeException("Template not found",e);
@@ -84,7 +84,7 @@ public class WebpageCreator {
 				Element list = cell.appendElement("ul").addClass("menu-item-list");
 				for(Station station: meal.stations) {
 					for(MenuItem item: station.menu) {
-						list.appendElement("li").appendText(item.toString());
+						item.createElement(list.appendElement("li"));
 					}
 				}
 			}
@@ -122,7 +122,7 @@ public class WebpageCreator {
 					cell.addClass(mealTitle);
 					Element list = cell.appendElement("ul").addClass("menu-item-list");
 					for(MenuItem item: station.menu) {
-						list.appendElement("li").appendText(item.toString());
+						item.createElement(list.appendElement("li"));
 					}
 				}
 			}

@@ -3,6 +3,8 @@ package io.yancey.menufetcher.data;
 import java.io.*;
 import java.util.*;
 
+import org.jsoup.nodes.*;
+
 import com.google.gson.stream.*;
 
 public class MenuItem {
@@ -22,6 +24,15 @@ public class MenuItem {
 		} else {
 			return name + ": \n\t" + description.replaceAll("<br />", "\n\t");
 		}
+	}
+	
+	public Element createElement(Element parent) {
+		Element itemSpan = parent.appendElement("span");
+		itemSpan.text(name);
+		if(!description.isEmpty() && !description.equals(name)){
+			itemSpan.attr("title", description.replaceAll("<br[^>]*>", "\n"));
+		}
+		return itemSpan;
 	}
 	
 	public boolean equals(Object o) {
