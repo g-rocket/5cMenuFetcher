@@ -30,6 +30,7 @@ public class MenuItem {
 		Element itemSpan = parent.appendElement("span");
 		itemSpan.text(name);
 		if(!description.isEmpty() && !description.equals(name)){
+			itemSpan.attr("rel", "tooltip");
 			itemSpan.attr("title", description.replaceAll("<br[^>]*>", "\n"));
 		}
 		return itemSpan;
