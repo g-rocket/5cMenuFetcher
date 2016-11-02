@@ -97,7 +97,7 @@ public class Main {
 				.withValuesConvertedBy(new ValueConverter<String>() {
 					@Override
 					public String convert(String value) {
-						if(value != "none" && value != "blank" && value != "all") {
+						if(!value.equals("none") && !value.equals("blank") && !value.equals("all")) {
 							throw new IllegalArgumentException();
 						}
 						return value;
