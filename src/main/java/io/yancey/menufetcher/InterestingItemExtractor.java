@@ -55,8 +55,8 @@ public class InterestingItemExtractor {
 						newMenuItems.add(baseStation.menu.get(i));
 					}
 				} else {
-					for(int i = -howManyItems; i < baseStation.menu.size(); i++) {
-						newMenuItems.add(baseStation.menu.get(i));
+					for(int i = 0; i < -howManyItems && i < baseStation.menu.size(); i++) {
+						newMenuItems.add(baseStation.menu.get(baseStation.menu.size() - i - 1));
 					}
 				}
 				return new Station(baseStation.name, newMenuItems);
