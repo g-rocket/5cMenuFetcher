@@ -172,16 +172,7 @@ public class WebpageCreator {
 			stationRow.addClass("colored");
 			isOddRow = !isOddRow;
 			if(isFirstStation) {
-				Element summaryLinkToFull = template.getElementById("menu-summary-"+menu.diningHallId+"-link-to-full");
-				summaryLinkToFull.attr("href", "#"+stationRow.id());
-				Element diningHallName = stationRow.appendElement("td");
-				diningHallName.attr("id", "menu-title-" + menu.diningHallId);
-				diningHallName.addClass("menu-cell");
-				diningHallName.addClass("menu-title");
-				Element nameLink = diningHallName.appendElement("a");
-				nameLink.attr("href", menu.publicUrl);
-				nameLink.text(menu.diningHallName);
-				diningHallName.attr("rowspan",Integer.toString(stationNames.size()));
+				addDiningHallName(template, stationRow, stationNames.size(), menu);
 				isFirstStation = false;
 			}
 			Element stationName = stationRow.appendElement("td");
@@ -193,6 +184,29 @@ public class WebpageCreator {
 		}
 	}
 	
+	private static final DateTimeFormatter hmFormat = DateTimeFormatter.ofPattern("h:mm");
+	private static void addDiningHallName(Document template, Element stationRow, int height, Menu menu) {
+		Element summaryLinkToFull = template.getElementById("menu-summary-"+menu.diningHallId+"-link-to-full");
+		summaryLinkToFull.attr("href", "#"+stationRow.id());
+		Element diningHallName = stationRow.appendElement("td");
+		diningHallName.attr("id", "menu-title-" + menu.diningHallId);
+		diningHallName.addClass("menu-cell");
+		diningHallName.addClass("menu-title");
+		Element nameLink = diningHallName.appendElement("a");
+		nameLink.attr("href", menu.publicUrl);
+		nameLink.text(menu.diningHallName);
+		Element times = diningHallName.appendElement("div");
+		for(Meal meal: menu.meals) {
+			if(meal.startTime == null || meal.endTime == null) continue;
+			times.appendText(meal.name+":");
+			times.appendElement("br");
+			times.appendText(meal.startTime.format(hmFormat) + "\u00a0-\u00a0" +
+			                 meal.endTime.format(hmFormat));
+			times.appendElement("br");
+		}
+		diningHallName.attr("rowspan",Integer.toString(height));
+	}
+
 	private static String getStationIdFromName(String stationName) {
 		return stationName.toLowerCase().replaceAll("\\s+", "-");
 	}
