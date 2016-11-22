@@ -197,11 +197,11 @@ public class WebpageCreator {
 		nameLink.text(menu.diningHallName);
 		Element times = diningHallName.appendElement("div");
 		for(Meal meal: menu.meals) {
-			if(meal.startTime == null || meal.endTime == null) continue;
+			if(meal.hours == null) continue;
 			times.appendText(meal.name+":");
 			times.appendElement("br");
-			times.appendText(meal.startTime.format(hmFormat) + "\u00a0-\u00a0" +
-			                 meal.endTime.format(hmFormat));
+			times.appendText(meal.hours.startTime.format(hmFormat) + "\u00a0-\u00a0" +
+			                 meal.hours.endTime.format(hmFormat));
 			times.appendElement("br");
 		}
 		diningHallName.attr("rowspan",Integer.toString(height));

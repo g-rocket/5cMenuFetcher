@@ -40,9 +40,7 @@ public class InterestingItemExtractor {
 					stationRule.getValue());
 			if(newStation != null) newStations.add(newStation);
 		}
-		return new Meal(newStations,
-				baseMeal.startTime, baseMeal.endTime,
-				baseMeal.name, baseMeal.description);
+		return new Meal(newStations, baseMeal.hours, baseMeal.name, baseMeal.description);
 	}
 	
 	private Station getInterestingPartOfStation(Station baseStation, JsonElement rule) {

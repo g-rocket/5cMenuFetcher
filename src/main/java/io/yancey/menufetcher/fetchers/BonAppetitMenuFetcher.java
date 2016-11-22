@@ -214,8 +214,9 @@ public class BonAppetitMenuFetcher extends AbstractMenuFetcher {
 			stations.add(createStation(stationData.getAsJsonObject(), itemsData));
 		}
 		return new Meal(stations,
-				LocalTime.parse(mealData.get("starttime").getAsString()),
-				LocalTime.parse(mealData.get("endtime").getAsString()),
+				new LocalTimeRange(
+						LocalTime.parse(mealData.get("starttime").getAsString()),
+				        LocalTime.parse(mealData.get("endtime").getAsString())),
 				mealData.get("label").getAsString(), "");
 	}
 

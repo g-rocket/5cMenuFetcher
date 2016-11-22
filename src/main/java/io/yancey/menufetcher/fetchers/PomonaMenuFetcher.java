@@ -324,7 +324,7 @@ public class PomonaMenuFetcher extends AbstractMenuFetcher {
 		if(!spreadsheet[startRow + 1][column].isEmpty() && stations.isEmpty()) {
 			stations.add(fraryCreateDefaultBrunchStation(spreadsheet, startRow + 1, column));
 		}
-		return new Meal(stations, hours.startTime, hours.endTime, name, description);
+		return new Meal(stations, hours, name, description);
 	}
 
 	private Station fraryCreateDefaultBrunchStation(String[][] spreadsheet, int row, int column) {
@@ -366,7 +366,7 @@ public class PomonaMenuFetcher extends AbstractMenuFetcher {
 				stations.add(oldenborgCreateStation(spreadsheet, station + 3, column));
 			}
 		}
-		return new Meal(stations, hours.startTime, hours.endTime, name, description);
+		return new Meal(stations, hours, name, description);
 	}
 
 	private Station oldenborgCreateStation(String[][] spreadsheet, int row, int column) {
@@ -378,7 +378,7 @@ public class PomonaMenuFetcher extends AbstractMenuFetcher {
 
 	public static void main(String[] args) throws MalformedMenuException, MenuNotAvailableException {
 		//System.out.println(new FrankMenuFetcher().getMeals(LocalDate.of(2016,9,6)));
-		System.out.println(new FraryMenuFetcher().getMeals(LocalDate.of(2016,9,11)));
+		System.out.println(new FraryMenuFetcher().getMeals(LocalDate.of(2016,11,23)));
 		//System.out.println(new OldenborgMenuFetcher().getMeals(LocalDate.of(2016,2,22)));
 	}
 }

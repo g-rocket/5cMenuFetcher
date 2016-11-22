@@ -106,8 +106,10 @@ public class ApiCreator {
 		json.addProperty("id", toId(meal.name));
 		json.addProperty("name", meal.name);
 		json.addProperty("description", meal.description);
-		if(meal.startTime != null) json.addProperty("startTime", meal.startTime.toString());
-		if(meal.endTime != null) json.addProperty("endTime", meal.endTime.toString());
+		if(meal.hours != null) {
+			json.addProperty("startTime", meal.hours.startTime.toString());
+			json.addProperty("endTime", meal.hours.endTime.toString());
+		}
 		return json;
 	}
 	

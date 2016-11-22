@@ -1,24 +1,21 @@
 package io.yancey.menufetcher.data;
 
 import java.io.*;
-import java.time.*;
 import java.util.*;
 
 import com.google.gson.stream.*;
 
 public class Meal {
 	public final List<Station> stations;
-	public final LocalTime startTime;
-	public final LocalTime endTime;
+	public final LocalTimeRange hours;
 	public final String name;
 	public final String description;
 	
 	public Meal(List<Station> stations, 
-			LocalTime startTime, LocalTime endTime,
+			LocalTimeRange hours,
 			String name, String description) {
 		this.stations = stations;
-		this.startTime = startTime;
-		this.endTime = endTime;
+		this.hours = hours;
 		this.name = name;
 		this.description = description;
 	}
@@ -29,11 +26,11 @@ public class Meal {
 			sb.append(": \n");
 			sb.append(description);
 		}
-		if(startTime != null && endTime != null) {
+		if(hours != null) {
 			sb.append("\n");
-			sb.append(startTime);
+			sb.append(hours.startTime);
 			sb.append(" - ");
-			sb.append(endTime);
+			sb.append(hours.endTime);
 		}
 		sb.append("\n================\n\n");
 		for(Station station: stations) {
@@ -51,15 +48,17 @@ public class Meal {
 	
 	public int hashCode() {
 		return name.hashCode() ^ stations.hashCode() ^
-				startTime.hashCode() ^ endTime.hashCode();
+				(hours == null? 0: hours.startTime.hashCode() ^ hours.endTime.hashCode());
 	}
 	
 	public void toJson(JsonWriter writer) throws IOException {
 		writer.beginObject();
 		writer.name("name").value(name);
 		writer.name("description").value(description);
-		if(startTime != null) writer.name("startTime").value(startTime.toString());
-		if(endTime != null) writer.name("endTime").value(endTime.toString());
+		if(hours != null) {
+			writer.name("startTime").value(hours.startTime.toString());
+			writer.name("endTime").value(hours.endTime.toString());
+		}
 		writer.name("stations").beginArray();
 		for(Station station: stations) station.toJson(writer);
 		writer.endArray();

@@ -294,7 +294,7 @@ public class SodexoMenuFetcher extends AbstractMenuFetcher {
 					}
 					addStation(stations, stationName, items);
 				}
-				meals.add(new Meal(stations, null, null, mealName, ""));
+				meals.add(new Meal(stations, null, mealName, ""));
 			}
 			
 			return new Menu(name, id, getPublicSmgUrl(), meals);
@@ -374,7 +374,7 @@ public class SodexoMenuFetcher extends AbstractMenuFetcher {
 		while(mealItemIter.hasNext()) {
 			stations.add(createStation(mealItemIter));
 		}
-		return new Meal(stations, null, null, name, "");
+		return new Meal(stations, null, name, "");
 	}
 
 	private Station createStation(ListIterator<Element> mealItemIter) {
