@@ -261,8 +261,15 @@ public class SodexoMenuFetcher extends AbstractMenuFetcher {
 			
 			if(day.isBefore(startDate) || day.isAfter(endDate)) continue;
 			
-			JsonArray mealsData = week.getAsJsonObject().getAsJsonArray("menus").get(0).getAsJsonObject()
-					.getAsJsonArray("tabs").get(startDate.until(day).getDays()).getAsJsonObject().getAsJsonArray("groups");
+			JsonArray weekData = week.getAsJsonObject().getAsJsonArray("menus").get(0).getAsJsonObject()
+					.getAsJsonArray("tabs");
+			int weekDayIndex = startDate.until(day).getDays();
+			
+			if(weekDayIndex >= weekData.size()) {
+				throw new MenuNotAvailableException("No menu in smg for "+day);
+			}
+			
+			JsonArray mealsData = weekData.get(weekDayIndex).getAsJsonObject().getAsJsonArray("groups");
 
 			List<Meal> meals = new ArrayList<>(3);
 			for(JsonElement mealData: mealsData) {
@@ -285,11 +292,11 @@ public class SodexoMenuFetcher extends AbstractMenuFetcher {
 						String itemDescription = itemData.getAsJsonArray(itemId.getAsString()).get(23).getAsString();
 						Set<String> itemTags = new HashSet<>(Arrays.asList(
 								itemData.getAsJsonArray(itemId.getAsString()).get(30).getAsString().split("\\s+")));
-						if(stationName.equals("Exhibition") && itemName.equals("Made to Order Deli Bar")) {
+						/*if(stationName.equals("Exhibition") && itemName.equals("Made to Order Deli Bar")) {
 							stations.add(new Station("Deli", 
 									Arrays.asList(new MenuItem(itemName, itemDescription, itemTags))));
 							continue;
-						}
+						}*/
 						items.add(new MenuItem(itemName, itemDescription, itemTags));
 					}
 					addStation(stations, stationName, items);
