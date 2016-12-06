@@ -19,7 +19,7 @@ import org.jsoup.select.*;
 
 import com.google.gson.*;
 
-public class SodexoMenuFetcher extends AbstractMenuFetcher {
+public abstract class SodexoMenuFetcher extends AbstractMenuFetcher {
 	private static final List<String> mealNames = Arrays.asList("brk", "lun", "din");
 	
 	private final String sitename;
@@ -141,8 +141,24 @@ public class SodexoMenuFetcher extends AbstractMenuFetcher {
 		return "https://" + sitename + ".sodexomyway.com/dining-choices/index.html?forcedesktop=true";
 	}
 	
-	private static final Pattern datesPattern = Pattern.compile(
+	protected static final Pattern datesPattern = Pattern.compile(
 			"([0-9][0-9]?)/([0-9][0-9]?)/([0-9]+) - ([0-9][0-9]?)/([0-9][0-9]?)/([0-9]+)");
+	protected LocalDateRange parseDateRange(String dateRangeString) {
+		Matcher dates = datesPattern.matcher(dateRangeString);
+		if(!dates.find()) {
+			return null;
+		}
+		LocalDate startDate = LocalDate.of(
+				Integer.parseInt(dates.group(3)),
+				Integer.parseInt(dates.group(1)),
+				Integer.parseInt(dates.group(2)));
+		LocalDate endDate = LocalDate.of(
+				Integer.parseInt(dates.group(6)),
+				Integer.parseInt(dates.group(4)),
+				Integer.parseInt(dates.group(5)));
+		return new LocalDateRange(startDate, endDate);
+	}
+	
 	public String getMenuUrlFromPortal(LocalDate day)
 			throws MenuNotAvailableException, MalformedMenuException {
 		if(!pageCache.containsKey(getPortalUrl())) {
@@ -161,21 +177,13 @@ public class SodexoMenuFetcher extends AbstractMenuFetcher {
 		}
 		for(Element menuListing: menus) {
 			String datesString = menuListing.child(0).ownText();
-			Matcher dates = datesPattern.matcher(datesString);
-			if(!dates.matches()) {
+			LocalDateRange dates = parseDateRange(datesString);
+			if(dates == null) {
 				//throw new MalformedMenuException("Invalid date range string: " + datesString);
 				System.err.println("Invalid date string fetching "+id+": "+datesString);
 				continue;
 			}
-			LocalDate startDate = LocalDate.of(
-					Integer.parseInt(dates.group(3)),
-					Integer.parseInt(dates.group(1)),
-					Integer.parseInt(dates.group(2)));
-			LocalDate endDate = LocalDate.of(
-					Integer.parseInt(dates.group(6)),
-					Integer.parseInt(dates.group(4)),
-					Integer.parseInt(dates.group(5)));
-			if(!day.isBefore(startDate) && !day.isAfter(endDate)) {
+			if(dates.contains(day)) {
 				return menuListing.child(0).absUrl("href") + "?forcedesktop=true";
 			}
 		}
@@ -201,6 +209,24 @@ public class SodexoMenuFetcher extends AbstractMenuFetcher {
 			}
 		}
 		return pageCache.get(menuUrl);
+	}
+	
+	public Document fetchPortalPage() throws MenuNotAvailableException {
+		if(!pageCache.containsKey(getPortalUrl())) {
+			try {
+				pageCache.put(getPortalUrl(), Jsoup.connect(getPortalUrl()).timeout(10*1000).get());
+			} catch (IOException e) {
+				throw new MenuNotAvailableException("Error fetching portal", e);
+			}
+		}
+		return pageCache.get(getPortalUrl());
+	}
+	
+	protected abstract LocalTimeRange parseMealTime(Element accordianDiv, String mealName, LocalDate day);
+	
+	protected LocalTimeRange getMealTime(String mealName, LocalDate day) throws MenuNotAvailableException {
+		return parseMealTime(fetchPortalPage().getElementById("accordion_3543")
+				.getElementsByClass("accordionBody").get(1), mealName, day);
 	}
 	
 	@Override
@@ -244,8 +270,9 @@ public class SodexoMenuFetcher extends AbstractMenuFetcher {
 		List<Meal> meals = new ArrayList<>(3);
 		for(String mealName: mealNames) {
 			if(!menu.getElementsByClass(mealName).isEmpty()) {
-				meals.add(createMeal(menu.getElementsByClass(mealName),
-						day.getDayOfWeek().compareTo(DayOfWeek.FRIDAY) > 0));
+				meals.add(createMeal(menu.getElementsByClass(mealName), 
+						day.getDayOfWeek().compareTo(DayOfWeek.FRIDAY) > 0, 
+						getMealTime(mealName, day)));
 			}
 		}
 		return new Menu(name, id, getPublicMenuUrl(menuUrl, day), meals);
@@ -301,7 +328,7 @@ public class SodexoMenuFetcher extends AbstractMenuFetcher {
 					}
 					addStation(stations, stationName, items);
 				}
-				meals.add(new Meal(stations, null, mealName, ""));
+				meals.add(new Meal(stations, getMealTime(mealName, day), mealName, ""));
 			}
 			
 			return new Menu(name, id, getPublicSmgUrl(), meals);
@@ -370,7 +397,7 @@ public class SodexoMenuFetcher extends AbstractMenuFetcher {
 		return "https://" + sitename + ".sodexomyway.com/smgmenu/display/" + smgName + "?forcedesktop=true";
 	}
 
-	private Meal createMeal(Elements mealItems, boolean isWeekend) {
+	private Meal createMeal(Elements mealItems, boolean isWeekend, LocalTimeRange times) {
 		String name = mealItems.remove(0).getElementsByClass("mealname").first().ownText();
 		name = name.substring(0, 1) + name.substring(1).toLowerCase();
 		if(name.equals("Lunch") && isWeekend) {
@@ -381,7 +408,7 @@ public class SodexoMenuFetcher extends AbstractMenuFetcher {
 		while(mealItemIter.hasNext()) {
 			stations.add(createStation(mealItemIter));
 		}
-		return new Meal(stations, null, name, "");
+		return new Meal(stations, times, name, "");
 	}
 
 	private Station createStation(ListIterator<Element> mealItemIter) {
@@ -416,6 +443,6 @@ public class SodexoMenuFetcher extends AbstractMenuFetcher {
 	}
 
 	public static void main(String[] args) throws MenuNotAvailableException, MalformedMenuException {
-		System.out.println(new HochMenuFetcher().getMeals(LocalDate.of(2016, 10, 5)));
+		System.out.println(new HochMenuFetcher().getMeals(LocalDate.of(2016, 12, 6)));
 	}
 }
