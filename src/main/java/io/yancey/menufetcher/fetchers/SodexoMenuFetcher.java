@@ -1,9 +1,5 @@
 package io.yancey.menufetcher.fetchers;
 
-import io.yancey.menufetcher.*;
-import io.yancey.menufetcher.data.*;
-import io.yancey.menufetcher.fetchers.dininghalls.*;
-
 import java.io.*;
 import java.net.*;
 import java.time.*;
@@ -18,6 +14,10 @@ import org.jsoup.nodes.*;
 import org.jsoup.select.*;
 
 import com.google.gson.*;
+
+import io.yancey.menufetcher.*;
+import io.yancey.menufetcher.data.*;
+import io.yancey.menufetcher.fetchers.dininghalls.*;
 
 public abstract class SodexoMenuFetcher extends AbstractMenuFetcher {
 	private static final List<String> mealNames = Arrays.asList("brk", "lun", "din");
@@ -290,20 +290,30 @@ public abstract class SodexoMenuFetcher extends AbstractMenuFetcher {
 			
 			JsonArray weekData = week.getAsJsonObject().getAsJsonArray("menus").get(0).getAsJsonObject()
 					.getAsJsonArray("tabs");
-			int weekDayIndex = startDate.until(day).getDays();
 			
-			if(weekDayIndex >= weekData.size()) {
+			JsonObject dayData = null;
+			
+			for(JsonElement tab: weekData) {
+				String tabDayName = tab.getAsJsonObject().get("title").getAsString();
+				DayOfWeek tabDay = DayOfWeek.valueOf(tabDayName.toUpperCase());
+				if(tabDay.equals(day.getDayOfWeek())) {
+					dayData = tab.getAsJsonObject();
+					break;
+				}
+			}
+			
+			if(dayData == null) {
 				throw new MenuNotAvailableException("No menu in smg for "+day);
 			}
 			
-			JsonArray mealsData = weekData.get(weekDayIndex).getAsJsonObject().getAsJsonArray("groups");
+			JsonArray mealsData = dayData.getAsJsonArray("groups");
 
 			List<Meal> meals = new ArrayList<>(3);
 			for(JsonElement mealData: mealsData) {
 				String mealName = mealData.getAsJsonObject().get("title").getAsString();
 				if(mealName.equals("Lunch") &&
-						day.getDayOfWeek().equals(DayOfWeek.SATURDAY) || 
-						day.getDayOfWeek().equals(DayOfWeek.SUNDAY)) {
+						(day.getDayOfWeek().equals(DayOfWeek.SATURDAY) || 
+						day.getDayOfWeek().equals(DayOfWeek.SUNDAY))) {
 					mealName = "Brunch";
 				}
 				JsonArray stationsData = mealData.getAsJsonObject().getAsJsonArray("category");
@@ -443,6 +453,6 @@ public abstract class SodexoMenuFetcher extends AbstractMenuFetcher {
 	}
 
 	public static void main(String[] args) throws MenuNotAvailableException, MalformedMenuException {
-		System.out.println(new HochMenuFetcher().getMeals(LocalDate.of(2016, 12, 6)));
+		System.out.println(new HochMenuFetcher().getMeals(LocalDate.of(2017, 3, 19)));
 	}
 }
