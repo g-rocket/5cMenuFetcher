@@ -109,12 +109,12 @@ Returns an array of item descriptions
 ### All
 At any point along the hierarchy (after the date), the API node can be replaced with "all", which will cause all the nested data to be returned at once, nested in the JSON with its API keys.
 
-For example, a request to
+For example, a request to<a href="http://menu.yancey.io/api/v1/2016-11-16/hoch/lunch/all">
 
 ```
 http://menu.yancey.io/api/v1/2016-11-16/hoch/lunch/all
 ```
-would return all of the stations and items for lunch at the hoch that day, formatted as
+</a>would return all of the stations and items for lunch at the hoch that day, formatted as
 
 ```
 [
