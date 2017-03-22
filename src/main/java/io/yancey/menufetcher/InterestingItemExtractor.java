@@ -34,23 +34,24 @@ public class InterestingItemExtractor {
 	private Meal getInterestingPartOfMeal(Meal baseMeal, JsonObject mealRules) {
 		List<Station> newStations = new ArrayList<>();
 		for(Map.Entry<String, JsonElement> stationRule: mealRules.entrySet()) {
-			Station baseStation = getStationByName(baseMeal.stations, stationRule.getKey());
-			if(baseStation == null) continue;
-			Station newStation = getInterestingPartOfStation(
-					baseStation,
-					stationRule.getValue());
-			if(newStation != null) newStations.add(newStation);
-		}
-		if(mealRules.has("")) {
-			JsonObject wildcardRule = mealRules.get("").getAsJsonObject();
-			Pattern stationPattern = Pattern.compile(wildcardRule.get("regex-match").getAsString());
-			for(Station baseStation: baseMeal.stations) {
-				if(stationPattern.matcher(baseStation.name).matches()) {
-					Station newStation = getInterestingPartOfStation(
-							baseStation,
-							wildcardRule);
-					if(newStation != null) newStations.add(newStation);
+			if(stationRule.getKey().isEmpty()) {
+				String stationPatternString = stationRule.getValue().getAsJsonObject().get("regex-match").getAsString();
+				Pattern stationPattern = Pattern.compile(stationPatternString);
+				for(Station baseStation: baseMeal.stations) {
+					if(stationPattern.matcher(baseStation.name).matches()) {
+						Station newStation = getInterestingPartOfStation(
+								baseStation,
+								stationRule.getValue());
+						if(newStation != null) newStations.add(newStation);
+					}
 				}
+			} else {
+				Station baseStation = getStationByName(baseMeal.stations, stationRule.getKey());
+				if(baseStation == null) continue;
+				Station newStation = getInterestingPartOfStation(
+						baseStation,
+						stationRule.getValue());
+				if(newStation != null) newStations.add(newStation);
 			}
 		}
 		return new Meal(newStations, baseMeal.hours, baseMeal.name, baseMeal.description);

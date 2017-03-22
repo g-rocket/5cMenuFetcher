@@ -33,17 +33,17 @@
 			"Options": "all"
 		},
 		"Dinner": {
-			"Options": 1,
+			"": {
+				"regex-match": "chef's table: .*",
+				"number": "all"
+			},
 			"Chef's Table": 1,
+			"Options": 1,
 			"Ovens": {
 				"include-if": {
 					"not-contains": "Pizza"
 				},
 				"number": 1
-			},
-			"": {
-				"regex-match": "chef's table: .*",
-				"number": "all"
 			}
 		}
 	},
