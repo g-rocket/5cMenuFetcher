@@ -1,14 +1,14 @@
 package io.yancey.menufetcher.fetchers.dininghalls;
 
-import io.yancey.menufetcher.*;
-import io.yancey.menufetcher.data.*;
-import io.yancey.menufetcher.fetchers.*;
-
 import java.time.*;
 import java.util.regex.*;
 
 import org.jsoup.nodes.*;
 import org.jsoup.select.*;
+
+import io.yancey.menufetcher.*;
+import io.yancey.menufetcher.data.*;
+import io.yancey.menufetcher.fetchers.*;
 
 public class ScrippsMenuFetcher extends SodexoMenuFetcher {
 	public static final String SCRIPPS_SITENAME = "scrippsdining";
@@ -62,7 +62,7 @@ public class ScrippsMenuFetcher extends SodexoMenuFetcher {
 		return null;
 	}
 	
-	public static void main(String[] args) throws MenuNotAvailableException {
-		System.out.println(new ScrippsMenuFetcher().getMealTime("Brunch", LocalDate.of(2016, 12, 11)));
+	public static void main(String[] args) throws MenuNotAvailableException, MalformedMenuException {
+		System.out.println(new ScrippsMenuFetcher().getMeals(LocalDate.now()));
 	}
 }

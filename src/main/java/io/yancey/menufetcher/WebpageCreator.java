@@ -1,8 +1,5 @@
 package io.yancey.menufetcher;
 
-import io.yancey.menufetcher.data.*;
-import io.yancey.menufetcher.fetchers.*;
-
 import java.io.*;
 import java.time.*;
 import java.time.format.*;
@@ -13,6 +10,9 @@ import org.jsoup.nodes.*;
 
 import com.google.common.base.*;
 import com.google.common.io.*;
+
+import io.yancey.menufetcher.data.*;
+import io.yancey.menufetcher.fetchers.*;
 
 public class WebpageCreator {
 	private static final String NOT_FOUND_PAGE_ID = 
@@ -267,8 +267,8 @@ public class WebpageCreator {
 	}
 	
 	public static void main(String[] args) {
-		createAndSaveBlankpage(".", LocalDate.now(), true, true);
-		if(true) return;
+		//createAndSaveBlankpage(".", LocalDate.now(), true, true);
+		//if(true) return;
 		switch(args.length) {
 		case 0:
 			createAndSaveWebpage(".", LocalDate.now());

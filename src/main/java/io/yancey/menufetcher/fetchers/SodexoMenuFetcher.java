@@ -272,7 +272,7 @@ public abstract class SodexoMenuFetcher extends AbstractMenuFetcher {
 			if(!menu.getElementsByClass(mealName).isEmpty()) {
 				meals.add(createMeal(menu.getElementsByClass(mealName), 
 						day.getDayOfWeek().compareTo(DayOfWeek.FRIDAY) > 0, 
-						getMealTime(mealName, day)));
+						day));
 			}
 		}
 		return new Menu(name, id, getPublicMenuUrl(menuUrl, day), meals);
@@ -407,7 +407,7 @@ public abstract class SodexoMenuFetcher extends AbstractMenuFetcher {
 		return "https://" + sitename + ".sodexomyway.com/smgmenu/display/" + smgName + "?forcedesktop=true";
 	}
 
-	private Meal createMeal(Elements mealItems, boolean isWeekend, LocalTimeRange times) {
+	private Meal createMeal(Elements mealItems, boolean isWeekend, LocalDate day) throws MenuNotAvailableException {
 		String name = mealItems.remove(0).getElementsByClass("mealname").first().ownText();
 		name = name.substring(0, 1) + name.substring(1).toLowerCase();
 		if(name.equals("Lunch") && isWeekend) {
@@ -418,6 +418,7 @@ public abstract class SodexoMenuFetcher extends AbstractMenuFetcher {
 		while(mealItemIter.hasNext()) {
 			stations.add(createStation(mealItemIter));
 		}
+		LocalTimeRange times = getMealTime(name, day);
 		return new Meal(stations, times, name, "");
 	}
 
