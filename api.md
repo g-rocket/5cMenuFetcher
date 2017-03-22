@@ -1,4 +1,4 @@
-#API
+# API
 
 There is a basic REST api for getting machine-parsable data about menus.
 Everything is accessed based on the date.
