@@ -40,6 +40,10 @@
 					"not-contains": "Pizza"
 				},
 				"number": 1
+			},
+			"": {
+				"regex-match": "chef's table: .*",
+				"number": "all"
 			}
 		}
 	},

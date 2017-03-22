@@ -1,13 +1,14 @@
 package io.yancey.menufetcher;
 
-import io.yancey.menufetcher.data.*;
-import io.yancey.menufetcher.fetchers.*;
-
 import java.io.*;
 import java.time.*;
 import java.util.*;
+import java.util.regex.*;
 
 import com.google.gson.*;
+
+import io.yancey.menufetcher.data.*;
+import io.yancey.menufetcher.fetchers.dininghalls.*;
 
 public class InterestingItemExtractor {
 	public static InterestingItemExtractor instance = new InterestingItemExtractor();
@@ -39,6 +40,18 @@ public class InterestingItemExtractor {
 					baseStation,
 					stationRule.getValue());
 			if(newStation != null) newStations.add(newStation);
+		}
+		if(mealRules.has("")) {
+			JsonObject wildcardRule = mealRules.get("").getAsJsonObject();
+			Pattern stationPattern = Pattern.compile(wildcardRule.get("regex-match").getAsString());
+			for(Station baseStation: baseMeal.stations) {
+				if(stationPattern.matcher(baseStation.name).matches()) {
+					Station newStation = getInterestingPartOfStation(
+							baseStation,
+							wildcardRule);
+					if(newStation != null) newStations.add(newStation);
+				}
+			}
 		}
 		return new Meal(newStations, baseMeal.hours, baseMeal.name, baseMeal.description);
 	}
@@ -79,7 +92,7 @@ public class InterestingItemExtractor {
 		} else {
 			JsonObject filter = rule.getAsJsonObject()
 					.getAsJsonObject("include-if");
-			if(shouldIncludeStation(baseStation, filter)) {
+			if(filter == null || shouldIncludeStation(baseStation, filter)) {
 				return getInterestingPartOfStation(baseStation,
 						rule.getAsJsonObject().get("number"));
 			}
@@ -108,6 +121,6 @@ public class InterestingItemExtractor {
 	}
 	
 	public static void main(String[] args) throws IOException {
-		System.out.println(new InterestingItemExtractor().getInterestingItems(MenuFetcher.getAllMenuFetchers().get(0).getMeals(LocalDate.now())));
+		System.out.println(new InterestingItemExtractor().getInterestingItems(new PitzerMenuFetcher().getMeals(LocalDate.now())));
 	}
 }
