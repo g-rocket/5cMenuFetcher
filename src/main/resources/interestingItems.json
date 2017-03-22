@@ -28,8 +28,12 @@
 	},
 	"pitzer": {
 		"Lunch": {
-			"Ovens": 1,
+			"": {
+				"regex-match": "chef's table: .*",
+				"number": "all"
+			},
 			"Chef's Table": 1,
+			"Ovens": 1,
 			"Options": "all"
 		},
 		"Dinner": {
