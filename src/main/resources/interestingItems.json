@@ -18,6 +18,7 @@
 			},
 			"Exhibition": 1,
 			"Creations": 1,
+			"Specials": 1,
 			"Entrée": {
 				"include-if": {
 					"contains": "Steak"
