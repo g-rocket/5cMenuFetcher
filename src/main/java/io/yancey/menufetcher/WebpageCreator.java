@@ -9,6 +9,7 @@ import org.jsoup.*;
 import org.jsoup.nodes.*;
 
 import com.google.common.base.*;
+import com.google.common.collect.*;
 import com.google.common.io.*;
 
 import io.yancey.menufetcher.data.*;
@@ -116,8 +117,14 @@ public class WebpageCreator {
 			if(thisMeal != null) {
 				for(Station station: thisMeal.stations) {
 					String stationId = getStationIdFromName(station.name);
-					Element cell = menuTable.getElementById("menu-row-" + menu.diningHallId + "-" + stationId).appendElement("td");
-					cell.attr("id","menu-cell-" + menu.diningHallId + "-" + stationId + "-" + mealTitle);
+					int duplicateId = 0;
+					String cellId = "menu-cell-" + menu.diningHallId + "-" + stationId + "-" + mealTitle + "-";
+					while(menuTable.getElementById(cellId + duplicateId) != null) duplicateId++;
+					cellId += duplicateId;
+					Element cell = menuTable
+							.getElementById("menu-row-" + menu.diningHallId + "-" + stationId + "-" + duplicateId)
+							.appendElement("td");
+					cell.attr("id",cellId);
 					cell.addClass("menu-cell");
 					cell.addClass(mealTitle);
 					Element list = cell.appendElement("ul").addClass("menu-item-list");
@@ -153,23 +160,32 @@ public class WebpageCreator {
 	}
 	
 	private static void addStationNames(Document template, Element menuTable, Menu menu) {
-		List<String> stationNames = new ArrayList<>();
+		Multiset<String> stationNames = LinkedHashMultiset.create();
 		for(Meal meal: menu.meals) {
+			Multiset<String> stationNamesForMeal = LinkedHashMultiset.create();
 			for(Station station: meal.stations) {
-				if(!stationNames.contains(station.name)) {
-					stationNames.add(station.name);
-				}
+				stationNamesForMeal.add(station.name);
+			}
+			for(Multiset.Entry<String> e: stationNamesForMeal.entrySet()) {
+				stationNames.setCount(e.getElement(), Math.max(stationNames.count(e.getElement()), e.getCount()));
 			}
 		}
 		boolean isFirstStation = true;
 		boolean isOddRow = true;
 		for(String station: stationNames) {
 			String stationId = getStationIdFromName(station);
+			int duplicateId = 0;
+			String rowId = "menu-row-" + menu.diningHallId + "-" + stationId + "-";
+			while(menuTable.getElementById(rowId + duplicateId) != null) duplicateId++;
+			rowId += duplicateId;
 			Element stationRow = menuTable.appendElement("tr");
-			stationRow.attr("id","menu-row-"+menu.diningHallId+"-"+stationId);
+			stationRow.attr("id","menu-row-"+menu.diningHallId+"-"+stationId+"-"+duplicateId);
 			stationRow.addClass("menu-row-"+menu.diningHallId);
 			stationRow.addClass(menu.diningHallId);
 			stationRow.addClass("colored");
+			if(isOddRow) {
+				stationRow.addClass("menu-row-odd");
+			}
 			isOddRow = !isOddRow;
 			if(isFirstStation) {
 				addDiningHallName(template, stationRow, stationNames.size(), menu);
@@ -177,7 +193,7 @@ public class WebpageCreator {
 			}
 			Element stationName = stationRow.appendElement("td");
 			stationName.attr("id", 
-					"menu-title-" + menu.diningHallId + "-station-" + stationId);
+					"menu-title-" + menu.diningHallId + "-station-" + stationId + "-" + duplicateId);
 			stationName.addClass("menu-cell");
 			stationName.text(station);
 			
@@ -271,7 +287,7 @@ public class WebpageCreator {
 		//if(true) return;
 		switch(args.length) {
 		case 0:
-			createAndSaveWebpage(".", LocalDate.now());
+			createAndSaveWebpage(".", LocalDate.of(2017, 8, 18));
 			return;
 		case 1:
 			List<MenuFetcher> menuFetchers = MenuFetcher.getAllMenuFetchers();
