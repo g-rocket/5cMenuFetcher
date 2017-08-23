@@ -1,9 +1,5 @@
 package io.yancey.menufetcher.fetchers;
 
-import io.yancey.menufetcher.*;
-import io.yancey.menufetcher.data.*;
-import io.yancey.menufetcher.fetchers.dininghalls.*;
-
 import java.io.*;
 import java.net.*;
 import java.time.*;
@@ -17,6 +13,10 @@ import org.jsoup.nodes.*;
 import org.jsoup.parser.*;
 
 import com.google.gson.*;
+
+import io.yancey.menufetcher.*;
+import io.yancey.menufetcher.data.*;
+import io.yancey.menufetcher.fetchers.dininghalls.*;
 
 public class BonAppetitMenuFetcher extends AbstractMenuFetcher {
 	private final int cafeId;
@@ -79,10 +79,27 @@ public class BonAppetitMenuFetcher extends AbstractMenuFetcher {
 		for(JsonElement mealData: mealsData) {
 			meals.add(createMeal(mealData.getAsJsonObject(), itemsData));
 		}
-		// remove unused stations
+		// consolodate duplicate stations
+		for(Meal m: meals) {
+			for(ListIterator<Station> sli = m.stations.listIterator(); sli.hasNext();) {
+				Station s = sli.next();
+				int sliIndex = sli.nextIndex();
+				for(ListIterator<Station> sli2 = m.stations.listIterator(sli.nextIndex()); sli2.hasNext();) {
+					Station s2 = sli2.next();
+					if(s.name.equalsIgnoreCase(s2.name)) {
+						sli2.remove();
+						s.menu.addAll(s2.menu);
+						// avoid a ConcurrentModificationException by refreshing the iterator
+						sli = m.stations.listIterator(sliIndex);
+					}
+				}
+			}
+		}
+		// remove unused stations and empty meals
 		for(ListIterator<Meal> mli = meals.listIterator(); mli.hasNext();) {
+			Meal m = mli.next();
 			stationLoop:
-			for(ListIterator<Station> sli = mli.next().stations.listIterator(); sli.hasNext();) {
+			for(ListIterator<Station> sli = m.stations.listIterator(); sli.hasNext();) {
 				Station station = sli.next();
 				if(!station.menu.isEmpty()) continue stationLoop;
 				for(ListIterator<Meal> mli2 = meals.listIterator(mli.nextIndex()); mli2.hasNext();) {
@@ -93,6 +110,9 @@ public class BonAppetitMenuFetcher extends AbstractMenuFetcher {
 					}
 				}
 				sli.remove();
+			}
+			if(m.stations.isEmpty()) {
+				mli.remove();
 			}
 		}
 		return new Menu(name, id, getMenuUrl(day), meals);
@@ -253,7 +273,7 @@ public class BonAppetitMenuFetcher extends AbstractMenuFetcher {
 	}
 
 	public static void main(String[] args) throws MenuNotAvailableException, MalformedMenuException {
-		System.out.println(new PitzerMenuFetcher().getMeals(java.time.LocalDate.of(2016, 8, 28)));
+		System.out.println(new CollinsMenuFetcher().getMeals(java.time.LocalDate.of(2017, 8, 24)));
 	}
 	
 	private String getMenuUrl(LocalDate day) {

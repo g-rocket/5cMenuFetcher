@@ -15,7 +15,7 @@ public class MenuItem {
 	public MenuItem(String name, String description, Set<String> tags) {
 		this.name = name;
 		this.description = description;
-		this.tags = Collections.unmodifiableSet(tags);
+		this.tags = tags;
 	}
 	
 	public String toString() {

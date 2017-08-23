@@ -11,7 +11,7 @@ public class Station {
 	
 	public Station(String name, List<MenuItem> menu) {
 		this.name = name;
-		this.menu = Collections.unmodifiableList(menu);
+		this.menu = menu;
 	}
 	
 	public String toString() {

@@ -12,7 +12,7 @@ public class Menu {
 		this.diningHallName = diningHallName;
 		this.diningHallId = diningHallId;
 		this.publicUrl = publicUrl;
-		this.meals = Collections.unmodifiableList(meals);
+		this.meals = meals;
 	}
 	
 	public String toString() {
