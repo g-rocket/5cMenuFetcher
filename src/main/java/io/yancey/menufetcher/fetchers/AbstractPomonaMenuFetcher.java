@@ -3,10 +3,8 @@ package io.yancey.menufetcher.fetchers;
 import java.io.*;
 import java.net.*;
 import java.time.*;
-import java.time.format.*;
 import java.util.*;
 import java.util.regex.*;
-import java.util.stream.*;
 
 import org.jsoup.*;
 import org.jsoup.nodes.*;
@@ -17,14 +15,14 @@ import io.yancey.menufetcher.*;
 import io.yancey.menufetcher.data.*;
 import io.yancey.menufetcher.fetchers.dininghalls.*;
 
-public class PomonaMenuFetcher extends AbstractMenuFetcher {
+public abstract class AbstractPomonaMenuFetcher extends AbstractMenuFetcher {
 	private final String sitename;
 	private static final String urlPrefix = "http://www.pomona.edu/administration/dining/menus/";
 
 	protected Map<String, Document> documentCache = new HashMap<>();
 	protected Map<String, JsonElement> jsonCache = new HashMap<>();
 	
-	public PomonaMenuFetcher(String name, String id, String sitename) {
+	public AbstractPomonaMenuFetcher(String name, String id, String sitename) {
 		super(name, id);
 		this.sitename = sitename;
 	}
@@ -33,22 +31,22 @@ public class PomonaMenuFetcher extends AbstractMenuFetcher {
 		return urlPrefix + sitename;
 	}
 	
-	private Element getMenuSpreadsheetInfo(Document menuInfoPage) {
+	private static Element getMenuSpreadsheetInfo(Document menuInfoPage) {
 		return menuInfoPage.getElementById("menu-from-google");
 	}
 	
-	private String getDocumentId(Element menuSpreadsheetInfo) {
+	private static String getDocumentId(Element menuSpreadsheetInfo) {
 		return menuSpreadsheetInfo.attr("data-google-spreadsheet-id");
 	}
 	
-	private String getMenuType(Element menuSpreadsheetInfo) {
+	private static String getMenuType(Element menuSpreadsheetInfo) {
 		// frankFrary or oldenborg
 		return menuSpreadsheetInfo.attr("data-menu-type");
 	}
 	
 	// to view spreadsheet, see
 	// https://docs.google.com/spreadsheets/d/$spreadsheetId/pubhtml
-	private String getDocumentUrl(Element menuSpreadsheetInfo) {
+	private static String getDocumentUrl(Element menuSpreadsheetInfo) {
 		return "https://spreadsheets.google.com/feeds/worksheets/" + 
 				getDocumentId(menuSpreadsheetInfo) +
 				"/public/basic?alt=json";
@@ -107,7 +105,7 @@ public class PomonaMenuFetcher extends AbstractMenuFetcher {
 		return null;
 	}
 	
-	private String getSpreadsheetUrl(JsonObject spreadsheetInfo) {
+	private static String getSpreadsheetUrl(JsonObject spreadsheetInfo) {
 		for(JsonElement linkData: spreadsheetInfo.getAsJsonArray("link")) {
 			if(linkData.getAsJsonObject().get("rel").getAsString()
 					.equals("http://schemas.google.com/spreadsheets/2006#cellsfeed")) {
@@ -137,21 +135,21 @@ public class PomonaMenuFetcher extends AbstractMenuFetcher {
 		return jsonCache.get(url).getAsJsonArray();
 	}
 	
-	private int getCols(JsonObject spreadsheetInfo) {
+	private static int getCols(JsonObject spreadsheetInfo) {
 		return spreadsheetInfo.getAsJsonObject("gs$colCount")
 				.get("$t").getAsInt();
 	}
 	
-	private int getRows(JsonObject spreadsheetInfo) {
+	private static int getRows(JsonObject spreadsheetInfo) {
 		return spreadsheetInfo.getAsJsonObject("gs$rowCount")
 				.get("$t").getAsInt();
 	}
 	
-	private int getRow(String[] position) {
+	private static int getRow(String[] position) {
 		return Integer.parseInt(position[1]) - 1;
 	}
 	
-	private int getCol(String[] position) {
+	private static int getCol(String[] position) {
 		// convert AC type heading to number (29)
 		// val must be int[] so it can be modified in lambda
 		int[] val = {0};
@@ -163,7 +161,7 @@ public class PomonaMenuFetcher extends AbstractMenuFetcher {
 	}
 	
 	private static final Pattern positionRegex = Pattern.compile("^([A-Z]+)([1-9][0-9]*)$");
-	private String[] getPosition(JsonObject cellData) {
+	private static String[] getPosition(JsonObject cellData) {
 		String position = cellData.getAsJsonObject("title")
 				.get("$t").getAsString();
 		Matcher m = positionRegex.matcher(position);
@@ -173,7 +171,7 @@ public class PomonaMenuFetcher extends AbstractMenuFetcher {
 		return new String[]{m.group(1), m.group(2)};
 	}
 	
-	private String getContents(JsonObject cellData) {
+	private static String getContents(JsonObject cellData) {
 		return cellData.getAsJsonObject("content")
 				.get("$t").getAsString();
 	}
@@ -202,7 +200,7 @@ public class PomonaMenuFetcher extends AbstractMenuFetcher {
 			"([A-Z][a-z]*(?: [A-Z][a-z]*)*): ?" +
 			"([1-9][0-9]?):([0-9][0-9]) (a|p)\\.m\\. - " +
 			"([1-9][0-9]?):([0-9][0-9]) (a|p)\\.m\\.");
-	private Map<String, LocalTimeRange> getDiningHours(Document menuInfoPage, DayOfWeek dayOfWeek) {
+	private static Map<String, LocalTimeRange> getDiningHours(Document menuInfoPage, DayOfWeek dayOfWeek) {
 		Element hoursElement = menuInfoPage.getElementsByClass("dining-hours-top").first();
 		for(Element column: hoursElement.children()) {
 			if(!column.className().startsWith("dining-days-col-")) continue;
@@ -261,123 +259,24 @@ public class PomonaMenuFetcher extends AbstractMenuFetcher {
 		}
 		String[][] spreadsheet = getSpreadsheet(spreadsheetInfo);
 		
+		String menuType = getMenuType(menuSpreadsheetInfo);
+		if(!isRightType(menuType)) {
+			throw new MalformedMenuException("Wrong menu type: "+menuType);
+		}
+		
 		Map<String, LocalTimeRange> hoursTable = getDiningHours(menuInfoPage, day.getDayOfWeek());
 		
 		if(hoursTable.isEmpty()) {
 			// closed for the day
 			return new Menu(name, id, getMenuUrl(), Collections.emptyList());
 		}
-		
-		String menuType = getMenuType(menuSpreadsheetInfo);
-		if(menuType.equals("frankFrary")) {
-			return new Menu(name, id, getMenuUrl(), frankFraryParseMeals(spreadsheet, hoursTable, day.getDayOfWeek()));
-		} else if(menuType.equals("oldenborg")) {
-			return new Menu(name, id, getMenuUrl(), oldenborgParseMeals(spreadsheet, hoursTable, day.getDayOfWeek()));
-		} else {
-			throw new IllegalStateException("menu returned invalid type: " + menuType);
-		}
+
+		return new Menu(name, id, getMenuUrl(), parseMeals(spreadsheet, hoursTable, day.getDayOfWeek()));
 	}
 
-	private List<Meal> frankFraryParseMeals(String[][] spreadsheet, Map<String, LocalTimeRange> hoursTable, DayOfWeek dayOfWeek) {
-		String dayName = dayOfWeek.getDisplayName(TextStyle.FULL_STANDALONE, Locale.ROOT);
-		int startRow = -1;
-		for(int row = 0; row < spreadsheet.length; row++) {
-			if(dayName.equals(spreadsheet[row][0])) {
-				startRow = row - 1;
-				break;
-			}
-		}
-		if(startRow < 0) {
-			throw new IllegalArgumentException("Spreadsheet doesn't seem to contain data for " + dayOfWeek);
-		}
-		List<Meal> meals = new ArrayList<>(3);
-		for(int column = 2; column < spreadsheet[startRow].length; column++) {
-			if(frankFraryMealExists(spreadsheet, startRow, column)) {
-				meals.add(frankFraryCreateMeal(spreadsheet, startRow, column, hoursTable, dayOfWeek));
-			}
-		}
-		return meals;
-	}
-
-	private boolean frankFraryMealExists(String[][] spreadsheet, int startRow, int column) {
-		if(spreadsheet[startRow][column].isEmpty()) return false;
-		if(spreadsheet[startRow + 1][column].equalsIgnoreCase("CLOSED")) return false;
-		for(int station = 0; !spreadsheet[startRow + station + 2][1].isEmpty(); station++) {
-			if(!spreadsheet[startRow + station + 2][column].isEmpty()) return true;
-		}
-		if(!spreadsheet[startRow + 1][column].isEmpty()) {
-			return true;
-		}
-		return false;
-	}
+	protected abstract boolean isRightType(String menuType);
+	protected abstract List<Meal> parseMeals(String[][] spreadsheet, Map<String, LocalTimeRange> hoursTable, DayOfWeek dayOfWeek);
 	
-	private Meal frankFraryCreateMeal(String[][] spreadsheet, int startRow, int column, Map<String, LocalTimeRange> hoursTable, DayOfWeek dayOfWeek) {
-		String name = spreadsheet[startRow][column].trim();
-		if(name.equals("Brakfast")) name = "Breakfast"; // fix someone else's typo
-		if(name.equals("Breakfast Bar")) name = "Breakfast"; // for consistency
-		LocalTimeRange hours = hoursTable.get(name);
-		String description = spreadsheet[startRow + 1][column];
-		List<Station> stations = new ArrayList<>();
-		for(int station = 0; !spreadsheet[startRow + station + 2][1].isEmpty() && !spreadsheet[startRow + station + 2][0].equals("Day"); station++) {
-			if(!spreadsheet[startRow + station + 2][column].isEmpty()) {
-				stations.add(frankFraryCreateStation(spreadsheet, startRow + station + 2, column));
-			}
-		}
-		if(!spreadsheet[startRow + 1][column].isEmpty() && stations.isEmpty()) {
-			stations.add(fraryCreateDefaultBrunchStation(spreadsheet, startRow + 1, column));
-		}
-		return new Meal(stations, hours, name, description);
-	}
-
-	private Station fraryCreateDefaultBrunchStation(String[][] spreadsheet, int row, int column) {
-		return new Station("Brunch", 
-				Arrays.stream(spreadsheet[row][column].split(","))
-				.map(itemName -> new MenuItem(itemName.trim(), "", Collections.emptySet()))
-				.collect(Collectors.toList()));
-	}
-
-	private Station frankFraryCreateStation(String[][] spreadsheet, int row, int column) {
-		return new Station(spreadsheet[row][1], 
-				Arrays.stream(spreadsheet[row][column].split(","))
-				.map(itemName -> new MenuItem(itemName.trim(), "", Collections.emptySet()))
-				.collect(Collectors.toList()));
-	}
-
-	private List<Meal> oldenborgParseMeals(String[][] spreadsheet, Map<String, LocalTimeRange> hoursTable, DayOfWeek dayOfWeek) {
-		if(!oldenborgMealExists(spreadsheet, dayOfWeek)) return Collections.emptyList();
-		return Collections.singletonList(oldenborgCreateMeal(spreadsheet, hoursTable, dayOfWeek.getValue()));
-	}
-
-	private boolean oldenborgMealExists(String[][] spreadsheet, DayOfWeek dayOfWeek) {
-		if(dayOfWeek.equals(DayOfWeek.SATURDAY) || dayOfWeek.equals(DayOfWeek.SUNDAY)) return false;
-		int column = dayOfWeek.getValue();
-		if(spreadsheet[2][column].equalsIgnoreCase("CLOSED")) return false;
-		for(int row = 3; !spreadsheet[row][column].isEmpty(); row++) {
-			if(!spreadsheet[row][column].isEmpty()) return true;
-		}
-		return false;
-	}
-
-	private Meal oldenborgCreateMeal(String[][] spreadsheet, Map<String, LocalTimeRange> hoursTable, int column) {
-		String name = hoursTable.keySet().iterator().next();
-		LocalTimeRange hours = hoursTable.get(name);
-		String description = spreadsheet[2][column];
-		List<Station> stations = new ArrayList<>();
-		for(int station = 0; !spreadsheet[station + 3][column].isEmpty(); station++) {
-			if(!spreadsheet[station + 3][column].isEmpty()) {
-				stations.add(oldenborgCreateStation(spreadsheet, station + 3, column));
-			}
-		}
-		return new Meal(stations, hours, name, description);
-	}
-
-	private Station oldenborgCreateStation(String[][] spreadsheet, int row, int column) {
-		return new Station(spreadsheet[row][0], 
-				Arrays.stream(spreadsheet[row][column].split(","))
-				.map(itemName -> new MenuItem(itemName.trim(), "", Collections.emptySet()))
-				.collect(Collectors.toList()));
-	}
-
 	public static void main(String[] args) throws MalformedMenuException, MenuNotAvailableException {
 		//System.out.println(new FrankMenuFetcher().getMeals(LocalDate.of(2016,9,6)));
 		System.out.println(new FraryMenuFetcher().getMeals(LocalDate.of(2017,8,26)));
