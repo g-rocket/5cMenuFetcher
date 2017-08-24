@@ -10,12 +10,12 @@ import io.yancey.menufetcher.*;
 import io.yancey.menufetcher.data.*;
 import io.yancey.menufetcher.fetchers.*;
 
-public class ScrippsMenuFetcher extends SodexoMenuFetcher {
+public class ScrippsMenuFetcher extends SodexoImagesMenuFetcher {
 	public static final String SCRIPPS_SITENAME = "scrippsdining";
 	public static final int SCRIPPS_TCM = 1567;
 	
 	public ScrippsMenuFetcher() {
-		super("Malott", "scripps", SCRIPPS_SITENAME, SCRIPPS_TCM, null);
+		super("Malott", "scripps", SCRIPPS_SITENAME, SCRIPPS_TCM);
 	}
 
 	private Pattern mealTimesPattern = Pattern.compile(
