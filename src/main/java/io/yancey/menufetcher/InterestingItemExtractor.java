@@ -101,7 +101,7 @@ public class InterestingItemExtractor {
 		}
 	}
 
-	private boolean shouldIncludeStation(Station baseStation, JsonObject filter) {
+	private static boolean shouldIncludeStation(Station baseStation, JsonObject filter) {
 		Map.Entry<String, JsonElement> rule = filter.entrySet().iterator().next();
 		switch(rule.getKey()) {
 			case "contains":
@@ -112,7 +112,7 @@ public class InterestingItemExtractor {
 		return false;
 	}
 
-	private Station getStationByName(List<Station> stations, String stationName) {
+	private static Station getStationByName(List<Station> stations, String stationName) {
 		for(Station station: stations) {
 			if(station.name.equalsIgnoreCase(stationName)) {
 				return station;

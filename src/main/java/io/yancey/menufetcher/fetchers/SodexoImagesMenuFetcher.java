@@ -248,7 +248,7 @@ public abstract class SodexoImagesMenuFetcher extends AbstractSodexoMenuFetcher 
 		return new Meal(stations, times, name, "");
 	}
 
-	private Station createStation(ListIterator<Element> mealItemIter) {
+	private static Station createStation(ListIterator<Element> mealItemIter) {
 		List<MenuItem> items = new ArrayList<>();
 		String name = null;
 		while(mealItemIter.hasNext()) {
@@ -269,7 +269,7 @@ public abstract class SodexoImagesMenuFetcher extends AbstractSodexoMenuFetcher 
 		return new Station(name, items);
 	}
 
-	private MenuItem createMenuItem(Element itemInfo) {
+	private static MenuItem createMenuItem(Element itemInfo) {
 		itemInfo.getElementsByClass("station").remove();
 		String name = itemInfo.text();
 		Set<String> tags = new HashSet<>();

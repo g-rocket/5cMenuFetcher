@@ -141,7 +141,7 @@ public class BonAppetitMenuFetcher extends AbstractMenuFetcher {
 	}
 
 	private static final Pattern mealTitleRegex = Pattern.compile("<h3>([^<]+)</h3>");
-	private JsonArray formatAsMealsData(String feedItemText, JsonObject itemsData) {
+	private static JsonArray formatAsMealsData(String feedItemText, JsonObject itemsData) {
 		JsonArray mealsData = new JsonArray();
 		Matcher mealTitleMatcher = mealTitleRegex.matcher(feedItemText);
 		if(!mealTitleMatcher.find()) return null;
@@ -167,7 +167,7 @@ public class BonAppetitMenuFetcher extends AbstractMenuFetcher {
 	}
 
 	private static final Pattern itemRegex = Pattern.compile("<h4>\\s*\\[([^]]+)\\]\\s*([^<]+)</h4>");
-	private JsonObject createMealDataFromRss(String mealTitle, String mealDataString, JsonObject itemsData) {
+	private static JsonObject createMealDataFromRss(String mealTitle, String mealDataString, JsonObject itemsData) {
 		Map<String, JsonArray> stationsMap = new HashMap<>();
 		Matcher itemMatcher = itemRegex.matcher(mealDataString);
 		
@@ -205,7 +205,7 @@ public class BonAppetitMenuFetcher extends AbstractMenuFetcher {
 		return mealData;
 	}
 
-	private String guessItemId(String itemName, JsonObject itemsData) {
+	private static String guessItemId(String itemName, JsonObject itemsData) {
 		itemName = itemName.trim();
 		if(itemName.endsWith("&nbsp;")) itemName = itemName.substring(0, itemName.length() - 6);
 		if(itemName.endsWith("\u00a0")) itemName = itemName.substring(0, itemName.length() - 1);
@@ -228,7 +228,7 @@ public class BonAppetitMenuFetcher extends AbstractMenuFetcher {
 		return !today.isBefore(startOfWeek) && !today.isAfter(endOfWeek);
 	}
 
-	private Meal createMeal(JsonObject mealData, JsonObject itemsData) {
+	private static Meal createMeal(JsonObject mealData, JsonObject itemsData) {
 		List<Station> stations = new ArrayList<>();
 		for(JsonElement stationData: mealData.getAsJsonArray("stations")) {
 			stations.add(createStation(stationData.getAsJsonObject(), itemsData));
@@ -240,7 +240,7 @@ public class BonAppetitMenuFetcher extends AbstractMenuFetcher {
 				mealData.get("label").getAsString(), "");
 	}
 
-	private Station createStation(JsonObject stationData, JsonObject itemsData) {
+	private static Station createStation(JsonObject stationData, JsonObject itemsData) {
 		List<MenuItem> items = new ArrayList<>();
 		boolean hasItems = false;
 		for(JsonElement itemId: stationData.getAsJsonArray("items")) {
@@ -258,7 +258,7 @@ public class BonAppetitMenuFetcher extends AbstractMenuFetcher {
 		return new Station(stationData.get("label").getAsString(), items);
 	}
 
-	private MenuItem createMenuItem(JsonObject itemData) {
+	private static MenuItem createMenuItem(JsonObject itemData) {
 		Set<String> tags;
 		if(itemData.get("cor_icon").isJsonObject()) {
 			JsonObject tagArray = itemData.getAsJsonObject("cor_icon");
