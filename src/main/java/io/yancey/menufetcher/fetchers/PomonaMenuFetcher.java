@@ -1,9 +1,5 @@
 package io.yancey.menufetcher.fetchers;
 
-import io.yancey.menufetcher.*;
-import io.yancey.menufetcher.data.*;
-import io.yancey.menufetcher.fetchers.dininghalls.*;
-
 import java.io.*;
 import java.net.*;
 import java.time.*;
@@ -16,6 +12,10 @@ import org.jsoup.*;
 import org.jsoup.nodes.*;
 
 import com.google.gson.*;
+
+import io.yancey.menufetcher.*;
+import io.yancey.menufetcher.data.*;
+import io.yancey.menufetcher.fetchers.dininghalls.*;
 
 public class PomonaMenuFetcher extends AbstractMenuFetcher {
 	private final String sitename;
@@ -46,6 +46,8 @@ public class PomonaMenuFetcher extends AbstractMenuFetcher {
 		return menuSpreadsheetInfo.attr("data-menu-type");
 	}
 	
+	// to view spreadsheet, see
+	// https://docs.google.com/spreadsheets/d/$spreadsheetId/pubhtml
 	private String getDocumentUrl(Element menuSpreadsheetInfo) {
 		return "https://spreadsheets.google.com/feeds/worksheets/" + 
 				getDocumentId(menuSpreadsheetInfo) +
@@ -56,18 +58,18 @@ public class PomonaMenuFetcher extends AbstractMenuFetcher {
 			throws MalformedMenuException, MenuNotAvailableException {
 		String url = getDocumentUrl(menuSpreadsheetInfo);
 		if(!jsonCache.containsKey(url)) {
-		try(Scanner sc = new Scanner(new URL(url).openStream(), "UTF-8")) {
-			sc.useDelimiter("\\A");
-			String spreadsheetsString = sc.hasNext()? sc.next(): "";
-			jsonCache.put(url,
-					new JsonParser().parse(spreadsheetsString).getAsJsonObject()
-					.getAsJsonObject("feed")
-					.getAsJsonArray("entry"));
-		} catch (MalformedURLException e) {
-			throw new MalformedMenuException("Invalid spreadsheets url", e);
-		} catch (IOException e) {
-			throw new MenuNotAvailableException("Error fetching spreadsheets",e);
-		}
+			try(Scanner sc = new Scanner(new URL(url).openStream(), "UTF-8")) {
+				sc.useDelimiter("\\A");
+				String spreadsheetsString = sc.hasNext()? sc.next(): "";
+				jsonCache.put(url,
+						new JsonParser().parse(spreadsheetsString).getAsJsonObject()
+						.getAsJsonObject("feed")
+						.getAsJsonArray("entry"));
+			} catch (MalformedURLException e) {
+				throw new MalformedMenuException("Invalid spreadsheets url", e);
+			} catch (IOException e) {
+				throw new MenuNotAvailableException("Error fetching spreadsheets",e);
+			}
 		}
 		return jsonCache.get(url).getAsJsonArray();
 	}
@@ -378,7 +380,7 @@ public class PomonaMenuFetcher extends AbstractMenuFetcher {
 
 	public static void main(String[] args) throws MalformedMenuException, MenuNotAvailableException {
 		//System.out.println(new FrankMenuFetcher().getMeals(LocalDate.of(2016,9,6)));
-		System.out.println(new FraryMenuFetcher().getMeals(LocalDate.of(2016,11,23)));
+		System.out.println(new FraryMenuFetcher().getMeals(LocalDate.of(2017,8,26)));
 		//System.out.println(new OldenborgMenuFetcher().getMeals(LocalDate.of(2016,2,22)));
 	}
 }
