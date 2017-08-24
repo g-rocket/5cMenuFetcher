@@ -12,6 +12,7 @@ public class AbstractFrankFraryMenuFetcher extends AbstractPomonaMenuFetcher {
 		super(name, id, sitename);
 	}
 
+	@Override
 	protected List<Meal> parseMeals(String[][] spreadsheet, Map<String, LocalTimeRange> hoursTable, DayOfWeek dayOfWeek) {
 		String dayName = dayOfWeek.getDisplayName(TextStyle.FULL_STANDALONE, Locale.ROOT);
 		int startRow = -1;
