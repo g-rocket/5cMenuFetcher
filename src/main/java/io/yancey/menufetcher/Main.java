@@ -198,8 +198,8 @@ public class Main {
 			}
 			if(index < cmdSplit.length) {
 				mf = getMF(cmdSplit[index++]);
+				if(mf == null) index--;
 			}
-			if(mf == null) index--;
 			if(index < cmdSplit.length) {
 				try {
 					day = LocalDate.parse(cmdSplit[index++]);
