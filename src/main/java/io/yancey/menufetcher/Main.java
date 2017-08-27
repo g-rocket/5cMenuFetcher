@@ -1,13 +1,14 @@
 package io.yancey.menufetcher;
 
-import io.yancey.menufetcher.data.*;
-import io.yancey.menufetcher.fetchers.*;
-
 import java.io.*;
 import java.nio.file.*;
 import java.time.*;
+import java.time.format.*;
 import java.util.*;
 
+import io.yancey.menufetcher.data.*;
+import io.yancey.menufetcher.fetchers.*;
+import io.yancey.menufetcher.fetchers.dininghalls.*;
 import joptsimple.*;
 
 public class Main {
@@ -113,6 +114,10 @@ public class Main {
 						return "none, blank, all";
 					}
 				});
+		OptionSpec<Void> interactiveOpt = parser.acceptsAll(
+				Arrays.asList("interactive", "z"),
+				"Interactively fetch only the requested data and format or display it (for debugging)")
+				.availableUnless(webOpt, apiOpt, nomenuOpt);
 		
 		OptionSet args;
 		try {
@@ -124,8 +129,8 @@ public class Main {
 			return;
 		}
 		
-		if(!(args.has(apiOpt) || args.has(webOpt) || args.has(nomenuOpt))) {
-			System.err.println("Please specify something to output (--web or --api or --nomenu)");
+		if(!(args.has(apiOpt) || args.has(webOpt) || args.has(nomenuOpt) || args.has(interactiveOpt))) {
+			System.err.println("Please specify something to output (--web or --api or --nomenu or --interactive)");
 			System.err.println();
 			try {
 				parser.printHelpOn(System.err);
@@ -167,6 +172,127 @@ public class Main {
 				System.err.println("error creating index:");
 				e.printStackTrace();
 			}
+		}
+		
+		if(args.has(interactiveOpt)) {
+			runInteractiveLoop();
+		}
+	}
+
+	private static void runInteractiveLoop() {
+		Scanner sc = new Scanner(System.in);
+		while(true) {
+			System.out.print("> ");
+			String cmdLine = sc.nextLine();
+			if(cmdLine.equals("exit")) return;
+			String[] cmdSplit = cmdLine.split(" ");
+			String cmd;
+			MenuFetcher mf = null;
+			LocalDate day = LocalDate.now();
+			int index = 0;
+			String directory = ".";
+			if(getMF(cmdSplit[0]) != null) {
+				cmd = "print";
+			} else {
+				cmd = cmdSplit[index++];
+			}
+			if(index < cmdSplit.length) {
+				mf = getMF(cmdSplit[index++]);
+			}
+			if(mf == null) index--;
+			if(index < cmdSplit.length) {
+				try {
+					day = LocalDate.parse(cmdSplit[index++]);
+				} catch(DateTimeParseException e) {
+					// it's not a date; try another type of argument?
+					index--;
+				}
+			}
+			if(index < cmdSplit.length) {
+				directory = cmdSplit[index++];
+			}
+			Menu menu = null;
+			if(mf != null) {
+				try {
+					menu = mf.getMeals(day);
+				} catch (MenuNotAvailableException | MalformedMenuException e) {
+					System.err.println("Error fetching menu for "+mf.getId()+" on "+day+":");
+					e.printStackTrace(System.err);
+					continue;
+				}
+			}
+			doCommand(cmd, menu, day, directory);
+		}
+	}
+	
+	private static void doCommand(String cmd, Menu menu, LocalDate day, String directory) {
+		switch(cmd.toLowerCase()) {
+			case "print":
+				System.out.println(menu);
+				break;
+			case "a":
+			case "api":
+				try {
+					if(menu == null) {
+						ApiCreator.createAPI(directory, day);
+					} else {
+						ApiCreator.createAPI(directory, day, Arrays.asList(menu));
+					}
+				} catch (IOException e) {
+					System.err.println("Error generating API:");
+					e.printStackTrace(System.err);
+				}
+				break;
+			case "w":
+			case "web":
+				try {
+					if(menu == null) {
+						WebpageCreator.createAndSaveWebpage(directory, day);
+					} else {
+						WebpageCreator.createAndSaveWebpage(directory, day, Arrays.asList(menu));
+					}
+				} catch(RuntimeException e) {
+					System.err.println("Error generating webpage:");
+					e.printStackTrace(System.err);
+				}
+				break;
+			case "i":
+			case "index":
+				try {
+					WebpageCreator.createIndex(directory, day);
+				} catch (IOException e) {
+					System.err.println("Error generating index:");
+					e.printStackTrace(System.err);
+				}
+				break;
+			default:
+				System.err.println("Invalid command "+cmd);
+		}
+		System.err.flush();
+	}
+
+	private static MenuFetcher getMF(String name) {
+		switch(name) {
+			case "o":
+			case "oldenborg": return new OldenborgMenuFetcher();
+			case "fk":
+			case "frank": return new FrankMenuFetcher();
+			case "fy":
+			case "frary": return new FraryMenuFetcher();
+			case "h":
+			case "hoch": return new HochMenuFetcher();
+			case "p":
+			case "mc":
+			case "pitzer":
+			case "mcconnel": return new PitzerMenuFetcher();
+			case "c":
+			case "cmc":
+			case "collins": return new CollinsMenuFetcher();
+			case "s":
+			case "ml":
+			case "scripps":
+			case "mallot": return new ScrippsMenuFetcher();
+			default: return null;
 		}
 	}
 
