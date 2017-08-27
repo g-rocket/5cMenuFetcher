@@ -228,6 +228,10 @@ public class Main {
 	private static void doCommand(String cmd, Menu menu, LocalDate day, String directory) {
 		switch(cmd.toLowerCase()) {
 			case "print":
+				if(menu == null) {
+					System.err.println("missing menufetcher");
+					break;
+				}
 				System.out.println(menu);
 				break;
 			case "a":
@@ -264,6 +268,16 @@ public class Main {
 					System.err.println("Error generating index:");
 					e.printStackTrace(System.err);
 				}
+				break;
+			case "e":
+			case "x":
+			case "interesting":
+			case "extract":
+				if(menu == null) {
+					System.err.println("missing menufetcher");
+					break;
+				}
+				System.out.println(new InterestingItemExtractor().getInterestingItems(menu));
 				break;
 			default:
 				System.err.println("Invalid command "+cmd);
