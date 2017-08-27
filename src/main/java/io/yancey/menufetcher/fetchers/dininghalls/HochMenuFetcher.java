@@ -6,7 +6,6 @@ import java.util.regex.*;
 import org.jsoup.nodes.*;
 import org.jsoup.select.*;
 
-import io.yancey.menufetcher.*;
 import io.yancey.menufetcher.data.*;
 import io.yancey.menufetcher.fetchers.*;
 
@@ -53,9 +52,5 @@ public class HochMenuFetcher extends SodexoSmgMenuFetcher {
 			}
 		}
 		return null;
-	}
-	
-	public static void main(String[] args) throws MenuNotAvailableException {
-		System.out.println(new HochMenuFetcher().getMealTime("Dinner", LocalDate.of(2016, 12, 11)));
 	}
 }

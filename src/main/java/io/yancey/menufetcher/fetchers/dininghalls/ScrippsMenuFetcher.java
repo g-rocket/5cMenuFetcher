@@ -6,7 +6,6 @@ import java.util.regex.*;
 import org.jsoup.nodes.*;
 import org.jsoup.select.*;
 
-import io.yancey.menufetcher.*;
 import io.yancey.menufetcher.data.*;
 import io.yancey.menufetcher.fetchers.*;
 
@@ -60,9 +59,5 @@ public class ScrippsMenuFetcher extends SodexoImagesMenuFetcher {
 			}
 		}
 		return null;
-	}
-	
-	public static void main(String[] args) throws MenuNotAvailableException, MalformedMenuException {
-		System.out.println(new ScrippsMenuFetcher().getMeals(LocalDate.now()));
 	}
 }

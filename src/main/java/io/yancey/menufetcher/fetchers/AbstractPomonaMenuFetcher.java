@@ -13,7 +13,6 @@ import com.google.gson.*;
 
 import io.yancey.menufetcher.*;
 import io.yancey.menufetcher.data.*;
-import io.yancey.menufetcher.fetchers.dininghalls.*;
 
 public abstract class AbstractPomonaMenuFetcher extends AbstractMenuFetcher {
 	private final String sitename;
@@ -276,10 +275,4 @@ public abstract class AbstractPomonaMenuFetcher extends AbstractMenuFetcher {
 
 	protected abstract boolean isRightType(String menuType);
 	protected abstract List<Meal> parseMeals(String[][] spreadsheet, Map<String, LocalTimeRange> hoursTable, DayOfWeek dayOfWeek);
-	
-	public static void main(String[] args) throws MalformedMenuException, MenuNotAvailableException {
-		//System.out.println(new FrankMenuFetcher().getMeals(LocalDate.of(2016,9,6)));
-		System.out.println(new FraryMenuFetcher().getMeals(LocalDate.of(2017,8,26)));
-		//System.out.println(new OldenborgMenuFetcher().getMeals(LocalDate.of(2016,2,22)));
-	}
 }

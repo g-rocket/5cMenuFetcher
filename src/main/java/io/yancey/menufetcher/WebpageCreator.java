@@ -281,36 +281,4 @@ public class WebpageCreator {
 	public static void createIndex(String folder, LocalDate day) throws IOException {
 		Files.copy(new File(folder, day.toString() + ".html"), new File(folder, "index.html"));
 	}
-	
-	public static void main(String[] args) {
-		//createAndSaveBlankpage(".", LocalDate.now(), true, true);
-		//if(true) return;
-		switch(args.length) {
-		case 0:
-			createAndSaveWebpage(".", LocalDate.of(2017, 8, 18));
-			return;
-		case 1:
-			List<MenuFetcher> menuFetchers = MenuFetcher.getAllMenuFetchers();
-			for(LocalDate day = LocalDate.now(); day.isBefore(LocalDate.now().plusDays(7)); day = day.plusDays(1)) {
-				try {
-					createAndSaveWebpage(args[0], day, MenuFetcher.fetchAllMenus(menuFetchers, day));
-				} catch(Throwable t) {
-					System.err.println("Failed to create webpage for day "+day);
-					t.printStackTrace();
-				}
-			}
-			try {
-				createIndex(args[0], LocalDate.now());
-			} catch (IOException e) {
-				System.err.println("Failed to create index");
-				e.printStackTrace();
-			}
-			return;
-		default:
-			for(int i = 1; i < args.length; i++) {
-				createAndSaveWebpage(args[0], LocalDate.parse(args[i]));
-			}
-			return;
-		}
-	}
 }

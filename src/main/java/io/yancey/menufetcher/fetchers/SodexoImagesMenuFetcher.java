@@ -15,7 +15,6 @@ import com.google.gson.*;
 
 import io.yancey.menufetcher.*;
 import io.yancey.menufetcher.data.*;
-import io.yancey.menufetcher.fetchers.dininghalls.*;
 
 public abstract class SodexoImagesMenuFetcher extends AbstractSodexoMenuFetcher {
 	private static final List<String> mealNames = Arrays.asList("brk", "lun", "din");
@@ -277,9 +276,5 @@ public abstract class SodexoImagesMenuFetcher extends AbstractSodexoMenuFetcher 
 			tags.add(tag.attr("alt"));
 		}
 		return new MenuItem(name, "", tags);
-	}
-
-	public static void main(String[] args) throws MenuNotAvailableException, MalformedMenuException {
-		System.out.println(new HochMenuFetcher().getMeals(LocalDate.of(2017, 3, 19)));
 	}
 }

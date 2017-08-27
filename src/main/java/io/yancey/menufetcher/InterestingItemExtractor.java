@@ -1,14 +1,12 @@
 package io.yancey.menufetcher;
 
 import java.io.*;
-import java.time.*;
 import java.util.*;
 import java.util.regex.*;
 
 import com.google.gson.*;
 
 import io.yancey.menufetcher.data.*;
-import io.yancey.menufetcher.fetchers.dininghalls.*;
 
 public class InterestingItemExtractor {
 	public static InterestingItemExtractor instance = new InterestingItemExtractor();
@@ -119,9 +117,5 @@ public class InterestingItemExtractor {
 			}
 		}
 		return null;
-	}
-	
-	public static void main(String[] args) throws IOException {
-		System.out.println(new InterestingItemExtractor().getInterestingItems(new PitzerMenuFetcher().getMeals(LocalDate.now())));
 	}
 }

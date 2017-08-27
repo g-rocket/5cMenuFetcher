@@ -16,7 +16,6 @@ import com.google.gson.*;
 
 import io.yancey.menufetcher.*;
 import io.yancey.menufetcher.data.*;
-import io.yancey.menufetcher.fetchers.dininghalls.*;
 
 public class BonAppetitMenuFetcher extends AbstractMenuFetcher {
 	private final int cafeId;
@@ -270,10 +269,6 @@ public class BonAppetitMenuFetcher extends AbstractMenuFetcher {
 		}
 		return new MenuItem(itemData.get("label").getAsString(),
 				itemData.get("description").getAsString(), tags);
-	}
-
-	public static void main(String[] args) throws MenuNotAvailableException, MalformedMenuException {
-		System.out.println(new CollinsMenuFetcher().getMeals(java.time.LocalDate.of(2017, 8, 24)));
 	}
 	
 	private String getMenuUrl(LocalDate day) {

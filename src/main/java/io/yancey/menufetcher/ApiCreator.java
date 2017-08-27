@@ -1,8 +1,5 @@
 package io.yancey.menufetcher;
 
-import io.yancey.menufetcher.data.*;
-import io.yancey.menufetcher.fetchers.*;
-
 import java.io.*;
 import java.nio.charset.*;
 import java.nio.file.*;
@@ -10,6 +7,9 @@ import java.time.*;
 import java.util.*;
 
 import com.google.gson.*;
+
+import io.yancey.menufetcher.data.*;
+import io.yancey.menufetcher.fetchers.*;
 
 public class ApiCreator {
 	private static String toId(String name) {
@@ -136,38 +136,5 @@ public class ApiCreator {
 
 	public static void createAPI(String folder, LocalDate day) throws IOException {
 		createAPI(folder, day, MenuFetcher.getAllMenuFetchers());
-	}
-	
-	public static void main(String[] args) {
-		switch(args.length) {
-		case 0:
-				try {
-					createAPI(".", LocalDate.now());
-				} catch (IOException e) {
-					throw new RuntimeException(e);
-				}
-			return;
-		case 1:
-			List<MenuFetcher> menuFetchers = MenuFetcher.getAllMenuFetchers();
-			for(LocalDate day = LocalDate.now(); day.isBefore(LocalDate.now().plusDays(7)); day = day.plusDays(1)) {
-				try {
-					createAPI(args[0], day, menuFetchers);
-				} catch(Throwable t) {
-					System.err.println("Failed to create API for day " + day);
-					t.printStackTrace();
-				}
-			}
-			return;
-		default:
-			for(int i = 1; i < args.length; i++) {
-				try {
-					createAPI(args[0], LocalDate.parse(args[i]));
-				} catch (Throwable t) {
-					System.err.println("Failed to create API for " + args[i]);
-					t.printStackTrace();
-				}
-			}
-			return;
-		}
 	}
 }
