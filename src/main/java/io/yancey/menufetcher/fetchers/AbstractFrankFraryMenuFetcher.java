@@ -80,6 +80,6 @@ public class AbstractFrankFraryMenuFetcher extends AbstractPomonaMenuFetcher {
 
 	@Override
 	protected boolean isRightType(String menuType) {
-		return menuType == "frankFrary";
+		return menuType.trim().equalsIgnoreCase("frankFrary");
 	}
 }

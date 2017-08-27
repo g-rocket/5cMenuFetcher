@@ -49,6 +49,6 @@ public class AbstractOldenborgMenuFetcher extends AbstractPomonaMenuFetcher {
 
 	@Override
 	protected boolean isRightType(String menuType) {
-		return menuType == "oldenborg";
+		return menuType.trim().equalsIgnoreCase("oldenborg");
 	}
 }
