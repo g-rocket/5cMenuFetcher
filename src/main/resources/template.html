@@ -70,6 +70,17 @@
       .day-list-item {
         text-align: center;
         border: 1px solid black;
+        padding-left: 3px;
+        padding-right: 3px;
+      }
+      
+      .day-list-blank {
+        width: 1em;
+      }
+      
+      table {
+        margin-left: 1em;
+   	    margin-right: 1em;
       }
       
       .day-list-item-selected {
@@ -181,6 +192,11 @@
             <td class="day-list-item" id="day-list-day-6"></td>
             <td class="day-list-item" id="day-list-day-7"></td>
             <td class="day-list-item day-list-item-arrow" id="day-list-fwd"><a id="day-list-fwd-link">&gt;&gt;</a></td>
+            <td class="day-list-blank" id="day-list-blank"></td>
+            <td class="day-list-item" id="day-list-today">
+              <a id="day-list-today-link" href="#"
+                 onclick="window.location=new Date(Date.now()).toISOString().slice(0,10) + '.html'">Today</a>
+            </td>
           </tr>
         </tbody>
       </table>
