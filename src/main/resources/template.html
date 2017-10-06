@@ -13,6 +13,10 @@
        	  placement: "bottom"
         });
       });
+      todayUrl = function() {
+        var tzoffset = (new Date()).getTimezoneOffset() * 60000
+        return new Date(Date.now() - tzoffset).toISOString().slice(0,10) + '.html';
+      }
     </script>
     
     <style>
@@ -195,7 +199,7 @@
             <td class="day-list-blank" id="day-list-blank"></td>
             <td class="day-list-item" id="day-list-today">
               <a id="day-list-today-link" href="#"
-                 onclick="window.location=new Date(Date.now()).toISOString().slice(0,10) + '.html'">Today</a>
+                 onclick="window.location=todayUrl()">Today</a>
             </td>
           </tr>
         </tbody>
