@@ -1,10 +1,10 @@
 package io.yancey.menufetcher.fetchers;
 
 import java.time.*;
-import java.time.format.*;
 import java.util.*;
 import java.util.stream.*;
 
+import io.yancey.menufetcher.*;
 import io.yancey.menufetcher.data.*;
 
 public class AbstractFrankFraryMenuFetcher extends AbstractPomonaMenuFetcher {
@@ -13,17 +13,17 @@ public class AbstractFrankFraryMenuFetcher extends AbstractPomonaMenuFetcher {
 	}
 
 	@Override
-	protected List<Meal> parseMeals(String[][] spreadsheet, Map<String, LocalTimeRange> hoursTable, DayOfWeek dayOfWeek) {
-		String dayName = dayOfWeek.getDisplayName(TextStyle.FULL_STANDALONE, Locale.ROOT);
+	protected List<Meal> parseMeals(String[][] spreadsheet, Map<String, LocalTimeRange> hoursTable, DayOfWeek dayOfWeek) throws MalformedMenuException {
+		String dayName = dayOfWeek.name();
 		int startRow = -1;
 		for(int row = 0; row < spreadsheet.length; row++) {
-			if(dayName.equals(spreadsheet[row][0])) {
+			if(dayName.equalsIgnoreCase(spreadsheet[row][0])) {
 				startRow = row - 1;
 				break;
 			}
 		}
 		if(startRow < 0) {
-			throw new IllegalArgumentException("Spreadsheet doesn't seem to contain data for " + dayOfWeek);
+			throw new MalformedMenuException("Spreadsheet doesn't seem to contain data for " + dayOfWeek);
 		}
 		List<Meal> meals = new ArrayList<>(3);
 		for(int column = 2; column < spreadsheet[startRow].length; column++) {

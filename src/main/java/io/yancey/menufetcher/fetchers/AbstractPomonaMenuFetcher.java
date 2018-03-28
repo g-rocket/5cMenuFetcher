@@ -274,5 +274,5 @@ public abstract class AbstractPomonaMenuFetcher extends AbstractMenuFetcher {
 	}
 
 	protected abstract boolean isRightType(String menuType);
-	protected abstract List<Meal> parseMeals(String[][] spreadsheet, Map<String, LocalTimeRange> hoursTable, DayOfWeek dayOfWeek);
+	protected abstract List<Meal> parseMeals(String[][] spreadsheet, Map<String, LocalTimeRange> hoursTable, DayOfWeek dayOfWeek) throws MalformedMenuException;
 }
