@@ -30,7 +30,7 @@ public class BonAppetitMenuFetcher extends AbstractMenuFetcher {
 	}
 	
 	private String getJsonMenuUrl(LocalDate day) {
-		return String.format("http://legacy.cafebonappetit.com/api/2/menus?format=json&cafe=%d&date=%s",
+		return String.format("https://legacy.cafebonappetit.com/api/2/menus?format=json&cafe=%d&date=%s",
 				cafeId, day.format(DateTimeFormatter.ISO_LOCAL_DATE));
 	}
 	
