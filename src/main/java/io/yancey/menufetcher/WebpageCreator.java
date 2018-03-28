@@ -188,6 +188,7 @@ public class WebpageCreator {
 			}
 			isOddRow = !isOddRow;
 			if(isFirstStation) {
+				stationRow.addClass("menu-row-first");
 				addDiningHallName(template, stationRow, stationNames.size(), menu);
 				isFirstStation = false;
 			}
