@@ -199,7 +199,7 @@ public abstract class AbstractPomonaMenuFetcher extends AbstractMenuFetcher {
 			"([A-Z][a-z]*(?: [A-Z][a-z]*)*): ?" +
 			"([1-9][0-9]?):([0-9][0-9]) (a|p)\\.m\\. - " +
 			"([1-9][0-9]?):([0-9][0-9]) (a|p)\\.m\\.");
-	private static Map<String, LocalTimeRange> getDiningHours(Document menuInfoPage, DayOfWeek dayOfWeek) {
+	private static Map<String, LocalTimeRange> getDiningHours(Document menuInfoPage, DayOfWeek dayOfWeek) throws MalformedMenuException {
 		Element hoursElement = menuInfoPage.getElementsByClass("dining-hours-top").first();
 		for(Element column: hoursElement.children()) {
 			if(!column.className().startsWith("dining-days-col-")) continue;
@@ -237,7 +237,7 @@ public abstract class AbstractPomonaMenuFetcher extends AbstractMenuFetcher {
 			}
 		}
 		System.out.println(hoursElement);
-		throw new IllegalArgumentException("The hours for the specified day could not be found");
+		throw new MalformedMenuException("The hours for the specified day could not be found");
 	}
 	
 	@Override
