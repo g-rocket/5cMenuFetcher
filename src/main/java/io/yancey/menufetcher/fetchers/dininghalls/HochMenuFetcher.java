@@ -8,8 +8,9 @@ public class HochMenuFetcher extends AbstractNewSodexoMenuFetcher {
 	public static final String HOCH_SMG = "harvey%20mudd%20college%20-%20resident%20dining";
 	public static final int HOCH_MENUID = 344;
 	public static final int HOCH_LOCATIONID = 13147001;
+	public static final String HOCH_CAFENAME = "hoch";
 	
 	public HochMenuFetcher() {
-		super("The Hoch", "hoch", HOCH_SITENAME, HOCH_MENUID, HOCH_LOCATIONID);
+		super("The Hoch", "hoch", HOCH_SITENAME, HOCH_MENUID, HOCH_LOCATIONID, HOCH_CAFENAME);
 	}
 }

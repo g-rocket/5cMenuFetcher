@@ -7,8 +7,9 @@ public class ScrippsMenuFetcher extends AbstractNewSodexoMenuFetcher {
 	public static final int SCRIPPS_TCM = 1567;
 	public static final int SCRIPPS_MENUID = 288;
 	public static final int SCRIPPS_LOCATIONID = 10638001;
+	public static final String SCRIPPS_CAFENAME = "mallot";
 	
 	public ScrippsMenuFetcher() {
-		super("Malott", "scripps", SCRIPPS_SITENAME, SCRIPPS_MENUID, SCRIPPS_LOCATIONID);
+		super("Malott", "scripps", SCRIPPS_SITENAME, SCRIPPS_MENUID, SCRIPPS_LOCATIONID, SCRIPPS_CAFENAME);
 	}
 }
