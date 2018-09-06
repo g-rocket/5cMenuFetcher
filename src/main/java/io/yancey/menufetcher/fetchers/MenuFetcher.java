@@ -8,13 +8,13 @@ import java.time.*;
 import java.util.*;
 
 public interface MenuFetcher {
-	public Menu getMeals(LocalDate day)
+	Menu getMeals(LocalDate day)
 			throws MenuNotAvailableException, MalformedMenuException;
 	
-	public String getName();
-	public String getId();
+	String getName();
+	String getId();
 	
-	public static List<MenuFetcher> getAllMenuFetchers() {
+	static List<MenuFetcher> getAllMenuFetchers() {
 		List<MenuFetcher> menuFetchers = new ArrayList<>(7);
 		menuFetchers.add(new HochMenuFetcher());
 		menuFetchers.add(new PitzerMenuFetcher());
@@ -27,7 +27,7 @@ public interface MenuFetcher {
 	}
 	
 	
-	public static List<Menu> fetchAllMenus(List<MenuFetcher> menuFetchers, LocalDate day) {
+	static List<Menu> fetchAllMenus(List<MenuFetcher> menuFetchers, LocalDate day) {
 		List<Menu> menus = new ArrayList<>();
 		for(MenuFetcher menuFetcher: menuFetchers) {
 			try {
