@@ -104,7 +104,9 @@ public abstract class AbstractNewSodexoMenuFetcher extends AbstractMenuFetcher {
 				}
 			}
 		}
-		return new Meal(stations, timeRange, mealJson.get("dayPartName").getAsString(), "");
+		String mealName = mealJson.get("dayPartName").getAsString();
+		if (mealName.contains("Brunch")) mealName = "Brunch";
+		return new Meal(stations, timeRange, mealName, "");
 	}
 
 	private static Station parseStation(JsonObject stationJson) {
