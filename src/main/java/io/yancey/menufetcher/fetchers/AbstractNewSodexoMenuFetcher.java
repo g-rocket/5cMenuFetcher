@@ -62,6 +62,9 @@ public abstract class AbstractNewSodexoMenuFetcher extends AbstractMenuFetcher {
 		if (!jsonCache.containsKey(day)) {
 			fetchMenu(day);
 		}
+		if (!jsonCache.containsKey(day)) {
+			throw new MenuNotAvailableException(String.format("fetchMenu(%s) didn't add a menu for %s", day, day));
+		}
 		return jsonCache.get(day);
 	}
 	
