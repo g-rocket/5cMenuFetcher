@@ -8,46 +8,46 @@ import java.time.*;
 import java.util.*;
 
 public interface MenuFetcher {
-	Menu getMeals(LocalDate day)
-			throws MenuNotAvailableException, MalformedMenuException;
-	
-	String getName();
-	String getId();
-	
-	static List<MenuFetcher> getAllMenuFetchers() {
-		List<MenuFetcher> menuFetchers = new ArrayList<>(7);
-		menuFetchers.add(new HochMenuFetcher());
-		menuFetchers.add(new PitzerMenuFetcher());
-		menuFetchers.add(new FrankMenuFetcher());
-		menuFetchers.add(new FraryMenuFetcher());
-		menuFetchers.add(new OldenborgMenuFetcher());
-		menuFetchers.add(new ScrippsMenuFetcher());
-		menuFetchers.add(new CollinsMenuFetcher());
-		return Collections.unmodifiableList(menuFetchers);
-	}
-	
-	
-	static List<Menu> fetchAllMenus(List<MenuFetcher> menuFetchers, LocalDate day) {
-		List<Menu> menus = new ArrayList<>();
-		for(MenuFetcher menuFetcher: menuFetchers) {
-			try {
-				menus.add(menuFetcher.getMeals(day));
-				System.out.print(".");
-			} catch(MenuNotAvailableException e) {
-				System.err.println("Error fetching "+menuFetcher.getId()+
-						" for "+day+": menu not found");
-				e.printStackTrace();
-			} catch(MalformedMenuException e) {
-				System.err.println("Error fetching "+menuFetcher.getId()+
-						" for "+day+": invalid data recieved");
-				e.printStackTrace();
-			} catch(Throwable t) {
-				System.err.println("Invalid exception recieved fetching "+
-						menuFetcher.getId()+" for "+day+": "+t);
-				throw t;
-			}
-		}
-		System.out.println();
-		return menus;
-	}
+  Menu getMeals(LocalDate day)
+      throws MenuNotAvailableException, MalformedMenuException;
+
+  String getName();
+  String getId();
+
+  static List<MenuFetcher> getAllMenuFetchers() {
+    List<MenuFetcher> menuFetchers = new ArrayList<>(7);
+    menuFetchers.add(new HochMenuFetcher());
+    menuFetchers.add(new PitzerMenuFetcher());
+    menuFetchers.add(new FrankMenuFetcher());
+    menuFetchers.add(new FraryMenuFetcher());
+    menuFetchers.add(new OldenborgMenuFetcher());
+    menuFetchers.add(new ScrippsMenuFetcher());
+    menuFetchers.add(new CollinsMenuFetcher());
+    return Collections.unmodifiableList(menuFetchers);
+  }
+
+
+  static List<Menu> fetchAllMenus(List<MenuFetcher> menuFetchers, LocalDate day) {
+    List<Menu> menus = new ArrayList<>();
+    for(MenuFetcher menuFetcher: menuFetchers) {
+      try {
+        menus.add(menuFetcher.getMeals(day));
+        System.out.print(".");
+      } catch(MenuNotAvailableException e) {
+        System.err.println("Error fetching "+menuFetcher.getId()+
+            " for "+day+": menu not found");
+        e.printStackTrace();
+      } catch(MalformedMenuException e) {
+        System.err.println("Error fetching "+menuFetcher.getId()+
+            " for "+day+": invalid data recieved");
+        e.printStackTrace();
+      } catch(Throwable t) {
+        System.err.println("Invalid exception recieved fetching "+
+            menuFetcher.getId()+" for "+day+": "+t);
+        throw t;
+      }
+    }
+    System.out.println();
+    return menus;
+  }
 }
