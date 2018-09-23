@@ -197,47 +197,47 @@ public abstract class AbstractPomonaMenuFetcher extends AbstractMenuFetcher {
 			"(Mon|Tues|Wednes|Thurs|Fri|Satur|Sun)day(?:-(Mon|Tues|Wednes|Thurs|Fri|Satur|Sun)day)?");
 	private static final Pattern mealTimePattern = Pattern.compile(
 			"([A-Z][a-z]*(?: [A-Z][a-z]*)*): ?" +
-			"([1-9][0-9]?):([0-9][0-9]) (a|p)\\.m\\. - " +
-			"([1-9][0-9]?):([0-9][0-9]) (a|p)\\.m\\.");
-	private static Map<String, LocalTimeRange> getDiningHours(Document menuInfoPage, DayOfWeek dayOfWeek) {
-		Element hoursElement = menuInfoPage.getElementsByClass("dining-hours-top").first();
-		for(Element column: hoursElement.children()) {
-			if(!column.className().startsWith("dining-days-col-")) continue;
-			String dayRangeString = column.getElementsByClass("dining-days").first().ownText();
-			Matcher dayRangeMatcher = dayRangeRegex.matcher(dayRangeString);
-			if(!dayRangeMatcher.find()) {
-				System.err.println("Invalid day range: "+dayRangeString);
-				continue;
-			}
-			DayOfWeek startDay = DayOfWeek.valueOf((dayRangeMatcher.group(1)+"day").toUpperCase());
-			DayOfWeek endDay;
-			if(dayRangeMatcher.group(2) != null) {
-				endDay = DayOfWeek.valueOf((dayRangeMatcher.group(2)+"day").toUpperCase());
-			} else {
-				endDay = startDay;
-			}
-			if(dayOfWeek.compareTo(startDay) >= 0 && dayOfWeek.compareTo(endDay) <= 0) {
-				Element hoursForDay = column.getElementsByClass("dining-hours").first();
-				Map<String, LocalTimeRange> times = new HashMap<>();
-				for(Matcher m = mealTimePattern.matcher(hoursForDay.text()); m.find();) {
-					String name = m.group(1);
-					LocalTime startTime = LocalTime.of(
-							Integer.parseInt(m.group(2))%12 + (m.group(4).equals("p")? 12: 0),
-							Integer.parseInt(m.group(3)));
-					LocalTime endTime = LocalTime.of(
-							Integer.parseInt(m.group(5))%12 + (m.group(7).equals("p")? 12: 0),
-							Integer.parseInt(m.group(6)));
-					times.put(name, new LocalTimeRange(startTime, endTime));
-					if(name.equals("Continental Breakfast")) {
-						// work around frary bug on weekends
-						times.put("Breakfast", new LocalTimeRange(startTime, endTime));
-					}
+			"([1-9][0-9]?)(?::([0-9][0-9]))? (a|p)\\.m\\. - " +
+			"([1-9][0-9]?)(?::([0-9][0-9]))? (a|p)\\.m\\.");
+	private static Map<String, LocalTimeRange> getDiningHours(Document menuInfoPage, DayOfWeek dayOfWeek) throws MalformedMenuException {
+		for(Element hoursElement: menuInfoPage.getElementsByClass("dining-hours-top")) {
+			for(Element column: hoursElement.children()) {
+				if(!column.className().startsWith("dining-days-col-")) continue;
+				String dayRangeString = column.getElementsByClass("dining-days").first().ownText();
+				Matcher dayRangeMatcher = dayRangeRegex.matcher(dayRangeString);
+				if(!dayRangeMatcher.find()) {
+					System.err.println("Invalid day range: "+dayRangeString);
+					continue;
 				}
-				return times;
+				DayOfWeek startDay = DayOfWeek.valueOf((dayRangeMatcher.group(1)+"day").toUpperCase());
+				DayOfWeek endDay;
+				if(dayRangeMatcher.group(2) != null) {
+					endDay = DayOfWeek.valueOf((dayRangeMatcher.group(2)+"day").toUpperCase());
+				} else {
+					endDay = startDay;
+				}
+				if(dayOfWeek.compareTo(startDay) >= 0 && dayOfWeek.compareTo(endDay) <= 0) {
+					Element hoursForDay = column.getElementsByClass("dining-hours").first();
+					Map<String, LocalTimeRange> times = new HashMap<>();
+					for(Matcher m = mealTimePattern.matcher(hoursForDay.text()); m.find();) {
+						String name = m.group(1);
+						LocalTime startTime = LocalTime.of(
+								Integer.parseInt(m.group(2))%12 + (m.group(4).equals("p")? 12: 0),
+								m.group(3) == null? 0: Integer.parseInt(m.group(3)));
+						LocalTime endTime = LocalTime.of(
+								Integer.parseInt(m.group(5))%12 + (m.group(7).equals("p")? 12: 0),
+								m.group(6) == null? 0: Integer.parseInt(m.group(6)));
+						times.put(name, new LocalTimeRange(startTime, endTime));
+						if(name.equals("Continental Breakfast")) {
+							// work around frary bug on weekends
+							times.put("Breakfast", new LocalTimeRange(startTime, endTime));
+						}
+					}
+					return times;
+				}
 			}
 		}
-		System.out.println(hoursElement);
-		throw new IllegalArgumentException("The hours for the specified day could not be found");
+		throw new MalformedMenuException("The hours for the specified day could not be found");
 	}
 	
 	@Override
