@@ -15,26 +15,86 @@ import com.google.common.io.*;
 import io.yancey.menufetcher.data.*;
 import io.yancey.menufetcher.fetchers.*;
 
+import java.io.StringWriter;
+
+import org.apache.velocity.VelocityContext;
+import org.apache.velocity.Template;
+import org.apache.velocity.app.Velocity;
+import org.apache.velocity.exception.ResourceNotFoundException;
+import org.apache.velocity.exception.ParseErrorException;
+import org.apache.velocity.exception.MethodInvocationException;
+
 public class WebpageCreator {
 	private static final String NOT_FOUND_PAGE_ID = 
 			"29b834b1c0e9c7c946c6dc1d7a49c2218be33fefb150e17f2e6bf8a7ee42fec7";
 	
-	public static Document createBlankpage(LocalDate day) {
+	private static void addStationNames(Document template, Element menuTable, Menu menu) {
+		Multiset<String> stationNames = LinkedHashMultiset.create();
+		for(Meal meal: menu.meals) {
+			Multiset<String> stationNamesForMeal = LinkedHashMultiset.create();
+			for(Station station: meal.stations) {
+				stationNamesForMeal.add(station.name);
+			}
+			for(Multiset.Entry<String> e: stationNamesForMeal.entrySet()) {
+				stationNames.setCount(e.getElement(), Math.max(stationNames.count(e.getElement()), e.getCount()));
+			}
+		}
+	}
+	
+	/*public static Document createBlankpage(LocalDate day) {
 		Document template = loadTemplate();
 		setupDayList(template, day);
 		deleteTables(template);
 		addBlankPageFlair(template, day);
 		return template;
-	}
+		
+		return Document()
+	}*/
 
-	public static Document createWebpage(LocalDate day, List<Menu> menus) {
-		Document template = loadTemplate();
-		setupDayList(template, day);
-		addMenus(template, menus);
-		return template;
+	/**
+	 * Create the entire webpage for a day, and returns the generated HTML as a string
+	 * 
+	 * @param day
+	 * The day which menus contains data for
+	 * 
+	 * @param menus
+	 * a list containing the meal information for each dining hall
+	 * 
+	 * @return
+	 * returns the generated HTML as a string
+	 */
+	public static String createWebpage(LocalDate day, List<Menu> menus) {
+		Velocity.init();
+		VelocityContext context = new VelocityContext();
+		context.put( "menus", menus);
+		context.put("test", "seems to be working");
+		Template template = null;
+
+		try
+		{
+		  template = Velocity.getTemplate("res/index.vm");
+		}
+		catch( ResourceNotFoundException rnfe )
+		{
+		  // couldn't find the template
+		}
+		catch( ParseErrorException pee )
+		{
+		  // syntax error: problem parsing the template
+		}
+		catch( MethodInvocationException mie )
+		{
+		  // something invoked in the template
+		  // threw an exception
+		}
+
+		StringWriter sw = new StringWriter();
+		template.merge( context, sw );
+		
+		return sw.toString();
 	}
 	
-	public static void createAndSaveBlankpage(String folder, LocalDate day, 
+	/*public static void createAndSaveBlankpage(String folder, LocalDate day, 
 			boolean replaceBlank, boolean replaceAll) {
 		File fp = new File(folder, day.toString() + ".html");
 		if(fp.exists() && !replaceAll) {
@@ -50,11 +110,11 @@ public class WebpageCreator {
 		} catch (IOException e) {
 			throw new RuntimeException("Error saving webpage",e);
 		}
-	}
+	}*/
 	
 	public static void createAndSaveWebpage(String folder, LocalDate day, List<Menu> menus) {
 		try(FileWriter w = new FileWriter(new File(folder, day.toString() + ".html"))) {
-			w.write(WebpageCreator.createWebpage(day, menus).toString());
+			w.write(WebpageCreator.createWebpage(day, menus));
 		} catch (IOException e) {
 			throw new RuntimeException("Error saving webpage",e);
 		}
