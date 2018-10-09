@@ -155,9 +155,10 @@ public class Main {
 		
 		if(args.has(nomenuOpt)) {
 			for(LocalDate day: args.valueOf(nomenuOpt)) {
-				WebpageCreator.createAndSaveBlankpage(baseDir, day, 
+				//TODO
+				/*WebpageCreator.createAndSaveBlankpage(baseDir, day, 
 						args.valueOf(nomenuReplaceOpt).equals("blank"), 
-						args.valueOf(nomenuReplaceOpt).equals("all"));
+						args.valueOf(nomenuReplaceOpt).equals("all"));*/
 			}
 		}
 		

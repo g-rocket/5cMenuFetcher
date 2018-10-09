@@ -5,7 +5,7 @@ import java.util.*;
 
 import com.google.gson.stream.*;
 
-public class Meal {
+public class Meal implements Comparable<Meal> {
 	public final List<Station> stations;
 	public final LocalTimeRange hours;
 	public final String name;
@@ -63,5 +63,11 @@ public class Meal {
 		for(Station station: stations) station.toJson(writer);
 		writer.endArray();
 		writer.endObject();
+	}
+
+	@Override
+	public int compareTo(Meal o) {
+		// use the starting time of this meal to compare to others
+		return this.hours.startTime.compareTo(o.hours.startTime);
 	}
 }

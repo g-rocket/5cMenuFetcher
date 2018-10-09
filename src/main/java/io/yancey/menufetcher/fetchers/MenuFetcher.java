@@ -15,14 +15,15 @@ public interface MenuFetcher {
 	public String getId();
 	
 	public static List<MenuFetcher> getAllMenuFetchers() {
+		// TODO uncomment all commented lines
 		List<MenuFetcher> menuFetchers = new ArrayList<>(7);
 		menuFetchers.add(new HochMenuFetcher());
 		menuFetchers.add(new PitzerMenuFetcher());
-		menuFetchers.add(new FrankMenuFetcher());
+		//menuFetchers.add(new FrankMenuFetcher());
 		menuFetchers.add(new FraryMenuFetcher());
-		menuFetchers.add(new OldenborgMenuFetcher());
-		menuFetchers.add(new ScrippsMenuFetcher());
-		menuFetchers.add(new CollinsMenuFetcher());
+		//menuFetchers.add(new OldenborgMenuFetcher());
+		//menuFetchers.add(new ScrippsMenuFetcher());
+		//menuFetchers.add(new CollinsMenuFetcher());
 		return Collections.unmodifiableList(menuFetchers);
 	}
 	
