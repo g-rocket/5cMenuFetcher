@@ -118,12 +118,19 @@ public abstract class AbstractNewSodexoMenuFetcher extends AbstractMenuFetcher {
 			JsonObject itemJson = e.getAsJsonObject();
 			items.add(parseItem(itemJson));
 		}
-		return new Station(stationJson.get("courseName").getAsString(), items);
+		String stationName = "[unknown]";
+		if (!stationJson.get("courseName").isJsonNull()) {
+			stationName = stationJson.get("courseName").getAsString();
+		}
+		return new Station(stationName, items);
 	}
 
 	private static MenuItem parseItem(JsonObject itemJson) {
 		String name = itemJson.get("formalName").getAsString();
-		String description = itemJson.get("description").getAsString();
+		String description = "";
+		if (!itemJson.get("description").isJsonNull()) {
+			description = itemJson.get("description").getAsString();
+		}
 		Set<String> tags = new HashSet<>();
 		for (Map.Entry<String, JsonElement> e: itemJson.entrySet()) {
 			if (e.getKey().startsWith("is")) {
