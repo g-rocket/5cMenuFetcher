@@ -31,21 +31,43 @@ public abstract class AbstractPomonaMenuFetcher extends AbstractMenuFetcher {
 	}
 	
 	private static Element getMenuSpreadsheetInfo(Document menuInfoPage) {
-		return menuInfoPage.getElementById("menu-from-google");
+		return menuInfoPage.getElementById("dining-menu-from-json");
 	}
 	
-	private static String getDocumentId(Element menuSpreadsheetInfo) {
-		return menuSpreadsheetInfo.attr("data-google-spreadsheet-id");
+	private static String getDocumentId(Element menuSpreadsheetInfo) throws MalformedMenuException {
+		String jsonURL = menuSpreadsheetInfo.attr("data-dining-menu-json-url");
+		// HACK:
+		switch(jsonURL) {
+			case "https://my.pomona.edu/eatec/Frank.json":
+				return "0AsnKhcsREmJpdGV5RG5JbXpQVElSb3dHNHN3QmVaTVE";
+			case "https://my.pomona.edu/eatec/Frary.json":
+				return "0AsnKhcsREmJpdDdnWm1nMkY0MHBvYkNOQVRPZkRHOUE";
+			case "https://my.pomona.edu/eatec/Oldenborg.json":
+				return "0AsnKhcsREmJpdHJBSUY2Y3Yxc0pqY0QwR29qOHhZUXc";
+			default:
+				throw new MalformedMenuException("Unexpected JSON url -- we should update...");
+		}
+		//return menuSpreadsheetInfo.attr("data-google-spreadsheet-id");
 	}
 	
-	private static String getMenuType(Element menuSpreadsheetInfo) {
-		// frankFrary or oldenborg
-		return menuSpreadsheetInfo.attr("data-menu-type");
+	private static String getMenuType(Element menuSpreadsheetInfo) throws MalformedMenuException {
+		String jsonURL = menuSpreadsheetInfo.attr("data-dining-menu-json-url");
+		// HACK:
+		switch(jsonURL) {
+			case "https://my.pomona.edu/eatec/Frank.json":
+				return "frankFrary";
+			case "https://my.pomona.edu/eatec/Frary.json":
+				return "frankFrary";
+			case "https://my.pomona.edu/eatec/Oldenborg.json":
+				return "oldenborg";
+			default:
+				throw new MalformedMenuException("Unexpected JSON url -- we should update...");
+		}
 	}
 	
 	// to view spreadsheet, see
 	// https://docs.google.com/spreadsheets/d/$spreadsheetId/pubhtml
-	private static String getDocumentUrl(Element menuSpreadsheetInfo) {
+	private static String getDocumentUrl(Element menuSpreadsheetInfo) throws MalformedMenuException {
 		return "https://spreadsheets.google.com/feeds/worksheets/" + 
 				getDocumentId(menuSpreadsheetInfo) +
 				"/public/basic?alt=json";
@@ -194,7 +216,7 @@ public abstract class AbstractPomonaMenuFetcher extends AbstractMenuFetcher {
 	}
 
 	private static final Pattern dayRangeRegex = Pattern.compile(
-			"(Mon|Tues|Wednes|Thurs|Fri|Satur|Sun)day(?:-(Mon|Tues|Wednes|Thurs|Fri|Satur|Sun)day)?");
+			"(Mon|Tues|Wednes|Thurs|Fri|Satur|Sun)day(?:\\s*-\\s*(Mon|Tues|Wednes|Thurs|Fri|Satur|Sun)day)?");
 	private static final Pattern mealTimePattern = Pattern.compile(
 			"([A-Z][a-z]*(?: [A-Z][a-z]*)*): ?" +
 			"([1-9][0-9]?)(?::([0-9][0-9]))? (a|p)\\.m\\. - " +
