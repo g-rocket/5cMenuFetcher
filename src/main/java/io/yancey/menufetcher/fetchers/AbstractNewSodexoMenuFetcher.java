@@ -49,7 +49,7 @@ public abstract class AbstractNewSodexoMenuFetcher extends AbstractMenuFetcher {
 		} catch (IOException e) {
 			throw new MenuNotAvailableException("Error fetching menu data", e);
 		}
-		String text = menuPage.getElementById("nutData").html();
+		String text = menuPage.getElementById("nutData").text();
 		JsonArray menus = new JsonParser().parse(text).getAsJsonArray();
 		for (JsonElement e: menus) {
 			JsonObject menu = e.getAsJsonObject();
