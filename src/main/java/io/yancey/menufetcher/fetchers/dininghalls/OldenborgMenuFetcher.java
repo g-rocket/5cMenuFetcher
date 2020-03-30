@@ -2,7 +2,7 @@ package io.yancey.menufetcher.fetchers.dininghalls;
 
 import io.yancey.menufetcher.fetchers.*;
 
-public class OldenborgMenuFetcher extends AbstractOldenborgMenuFetcher {
+public class OldenborgMenuFetcher extends AbstractNewPomonaMenuFetcher {
 	public static final String OLDENBORG_SITENAME = "oldenborg";
 	
 	public OldenborgMenuFetcher() {
